@@ -8,7 +8,8 @@ import java.io.Reader;
 /**
  * A bitspeak decoder.
  * <p>
- * Use {@link Bitspeak} for common decode operations.
+ * This class is not thread safe. Use {@link Bitspeak} for common decode operations.
+ * <p>
  */
 public abstract class BitspeakDecoder {
     protected int readCount;
