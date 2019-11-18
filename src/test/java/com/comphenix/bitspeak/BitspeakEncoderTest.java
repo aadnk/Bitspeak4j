@@ -1,11 +1,15 @@
 package com.comphenix.bitspeak;
 
 import com.google.common.io.BaseEncoding;
+import com.google.common.io.CharStreams;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.Arrays;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class BitspeakEncoderTest {
     @Test
@@ -72,6 +76,43 @@ public class BitspeakEncoderTest {
         // Must always end with finish block
         destinationPos += encoder.finishBlock(destination, destinationPos, destination.length - destinationPos);
         assertEquals("zipuzigikupakare", new String(destination, 0, destinationPos));
+    }
+
+    @Test
+    public void testReader() throws IOException {
+        byte[] source = BaseEncoding.base16().lowerCase().decode("f81f9644042f");
+
+        // Test using a very small buffer size
+        Reader reader = BitspeakEncoder.newStream(new ByteArrayInputStream(source), BitspeakFormat.BS_6, 4);
+        assertTrue(reader.markSupported());
+
+        // Full string: zipuzigikupakare
+        assertEquals('z', reader.read());
+
+        reader.mark(1024);
+        char[] chunkA = readFully(reader, 4); // ipuz
+
+        reader.reset();
+        char[] chunkB = readFully(reader, 4);
+        assertArrayEquals(chunkA, chunkB);
+
+        String remaining = CharStreams.toString(reader);
+        assertEquals("igikupakare", remaining);
+    }
+
+    private char[] readFully(Reader reader, int length) throws IOException {
+        char[] result = new char[length];
+        int position = 0;
+
+        while (position < length) {
+            int read = reader.read(result, position, length - position);
+
+            if (read < 0) {
+                throw new IOException("EOF");
+            }
+            position += read;
+        }
+        return result;
     }
 
     private byte[] generatePattern(int value, int length) {
