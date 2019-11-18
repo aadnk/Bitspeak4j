@@ -2,7 +2,7 @@
 A Java-library for encoding/decoding byte streams into pronounceable text, based on a 
 Javascript implementation and specification in [MaiaVictor/Bitspeak](https://github.com/MaiaVictor/Bitspeak).
 
-* [JavaDoc](https://comphenix.net/bitspeak/index.html)
+* [JavaDoc](https://comphenix.net/bitspeak/javadoc/index.html)
 
 ## Usage
 To convert a byte array, select the Bitspeak format you would like to use (either BS-6 or BS-8) 
