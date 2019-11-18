@@ -6,10 +6,17 @@ import java.io.InputStream;
 import java.io.Reader;
 
 /**
- * A bitspeak encoder.
+ * A bitspeak encoder. <i>Use {@link Bitspeak} for common encode operations.</i>
  * <p>
- * This class is not thread safe. Use {@link Bitspeak} for common encode operations.
+ * An encoder may be acquired using {@link Bitspeak#newEncoder()}. To encode a stream of bytes, call
+ * {@link BitspeakEncoder#encodeBlock(byte[], int, int, char[], int, int)} repeatedly with a range
+ * of input characters and a range of output bytes in a byte array. The method returns the number of written
+ * characters to the output character array, use {@link #getReadCount()} to determine the number of read bytes (total accumulated)
+ * from the byte arrays. Finally, call {@link BitspeakEncoder#finishBlock(char[], int, int)} to indicate that the stream of bytes
+ * have ended (EOF).
  * <p>
+ * WARNING: This class is not thread safe.
+ * </p>
  */
 public abstract class BitspeakEncoder {
     protected int readCount;

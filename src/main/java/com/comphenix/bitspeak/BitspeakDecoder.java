@@ -6,10 +6,16 @@ import java.io.InputStream;
 import java.io.Reader;
 
 /**
- * A bitspeak decoder.
+ * A bitspeak decoder. <i>Use {@link Bitspeak} for common decode operations.</i>
  * <p>
- * This class is not thread safe. Use {@link Bitspeak} for common decode operations.
+ * A decoder may be acquired using {@link Bitspeak#newDecoder()}. To decode a stream of characters, call
+ * {@link BitspeakDecoder#decodeBlock(char[], int, int, byte[], int, int)} repeatedly with a range
+ * of input characters and a range of output bytes in a byte array. The method returns the number of written
+ * bytes in the byte array, use {@link #getReadCount()} to determine the number of read characters (total accumulated) from the character
+ * array. Finally, call {@link BitspeakDecoder#finishBlock(byte[], int, int)} to indicate that the stream of characters have ended (EOF).
  * <p>
+ * WARNING: This class is not thread safe.
+ * </p>
  */
 public abstract class BitspeakDecoder {
     protected int readCount;

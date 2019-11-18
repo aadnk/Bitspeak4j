@@ -13,6 +13,10 @@ import java.util.Collections;
  * using a format, convert a byte array to a bitspeak string by calling its {@link Bitspeak#encode(byte[])} method. The
  * resulting string can be converted back to the original byte array by calling {@link Bitspeak#decode(String)}.
  * </p>
+ * <p>
+ * It is also possible to convert streams of bitspeak characters or byte arrays using {@link Bitspeak#newEncodeStream(InputStream)}
+ * or {@link Bitspeak#newDecodeStream(Reader)}.
+ * </p>
  * <br></br>
  * <h2>Examples</h2>
  * <table cellpadding="4">
