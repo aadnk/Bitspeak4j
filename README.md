@@ -31,7 +31,7 @@ try (Reader reader = Bitspeak.bs6().newEncodeStream(Files.newInputStream(input))
 
 You can use this as maven dependency. Repository:
 ```XML
-<reporitory>
+<repository>
     <id>comphenix</id>
     <name>Comphenix Maven Public</name>
     <url>https://repo.comphenix.net/content/repositories/public/</url>
