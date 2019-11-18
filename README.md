@@ -41,8 +41,8 @@ You can use this as maven dependency. Repository:
 Dependency:
 ```XML
 <dependency>
-    <groupId>com.comphenix.bitspeak</groupId>
-    <artifactId>BitspeakCodec</artifactId>
+    <groupId>com.comphenix</groupId>
+    <artifactId>Bitspeak</artifactId>
     <version>0.1-SNAPSHOT</version>
     <scope>compile</scope>
 </dependency>
