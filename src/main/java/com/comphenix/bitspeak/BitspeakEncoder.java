@@ -10,17 +10,17 @@ import java.io.Reader;
  * <p>
  * An encoder may be acquired using {@link Bitspeak#newEncoder()}. To encode a stream of bytes, call
  * {@link BitspeakEncoder#encodeBlock(byte[], int, int, char[], int, int)} repeatedly with a range
- * of input characters and a range of output bytes in a byte array. The method returns the number of written
- * characters to the output character array, use {@link #getReadCount()} to determine the number of read bytes (total accumulated)
- * from the byte arrays. Finally, call {@link BitspeakEncoder#finishBlock(char[], int, int)} to indicate that the stream of bytes
+ * of input bytes and a range of output character to a char array. The method returns the number of written
+ * characters to the output character array, use {@link #getReadCount()} to determine the number of read bytes (total accumulated
+ * over the life-time of the decoder) from the byte arrays. Finally, call {@link BitspeakEncoder#finishBlock(char[], int, int)} to indicate that the stream of bytes
  * have ended (EOF).
  * <p>
  * WARNING: This class is not thread safe.
  * </p>
  */
 public abstract class BitspeakEncoder {
-    protected int readCount;
-    protected int writeCount;
+    protected long readCount;
+    protected long writeCount;
 
     static BitspeakEncoder newEncoder(Bitspeak.Format format) {
         switch (format) {
@@ -50,7 +50,7 @@ public abstract class BitspeakEncoder {
                 fillBuffer();
 
                 if (bufferLength > 0) {
-                    int currentRead = getReadCount();
+                    long currentRead = getReadCount();
                     int written = encodeBlock(buffer, bufferPosition, bufferLength - bufferPosition, cbuf, off, len);
 
                     bufferPosition += getReadCount() - currentRead;
@@ -81,7 +81,7 @@ public abstract class BitspeakEncoder {
      * Retrieve the total number of bytes this decoder has read
      * @return The total number of read bytes.
      */
-    public int getReadCount() {
+    public long getReadCount() {
         return readCount;
     }
 
@@ -89,7 +89,7 @@ public abstract class BitspeakEncoder {
      * Retrieve the number of chracters this decoder has written.
      * @return Total number of written characters.
      */
-    public int getWriteCount() {
+    public long getWriteCount() {
         return writeCount;
     }
 

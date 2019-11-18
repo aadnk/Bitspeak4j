@@ -10,7 +10,7 @@ import java.io.Reader;
  * <p>
  * A decoder may be acquired using {@link Bitspeak#newDecoder()}. To decode a stream of characters, call
  * {@link BitspeakDecoder#decodeBlock(char[], int, int, byte[], int, int)} repeatedly with a range
- * of input characters and a range of output bytes in a byte array. The method returns the number of written
+ * of input characters and a range of output bytes to a byte array. The method returns the number of written
  * bytes in the byte array, use {@link #getReadCount()} to determine the number of read characters (total accumulated) from the character
  * array. Finally, call {@link BitspeakDecoder#finishBlock(byte[], int, int)} to indicate that the stream of characters have ended (EOF).
  * <p>
@@ -18,8 +18,8 @@ import java.io.Reader;
  * </p>
  */
 public abstract class BitspeakDecoder {
-    protected int readCount;
-    protected int writeCount;
+    protected long readCount;
+    protected long writeCount;
 
     static BitspeakDecoder newDecoder(Bitspeak.Format format) {
         switch (format) {
@@ -65,7 +65,7 @@ public abstract class BitspeakDecoder {
                 fillBuffer();
 
                 if (bufferLength > 0) {
-                    int currentRead = getReadCount();
+                    long currentRead = getReadCount();
                     int written = decodeBlock(buffer, bufferPosition, bufferLength - bufferPosition, b, off, len);
 
                     bufferPosition += getReadCount() - currentRead;
@@ -96,7 +96,7 @@ public abstract class BitspeakDecoder {
      * Retrieve the total number of character this decoder has read
      * @return The total number of read characters.
      */
-    public int getReadCount() {
+    public long getReadCount() {
         return readCount;
     }
 
@@ -104,7 +104,7 @@ public abstract class BitspeakDecoder {
      * Retrieve the number of bytes this decoder has written.
      * @return Total number of written bytes.
      */
-    public int getWriteCount() {
+    public long getWriteCount() {
         return writeCount;
     }
 
