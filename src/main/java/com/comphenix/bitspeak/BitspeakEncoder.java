@@ -32,9 +32,9 @@ public abstract class BitspeakEncoder {
      */
     public static BitspeakEncoder newEncoder(BitspeakFormat format) {
         switch (format) {
-            case SIX_BITS:
+            case BS_6:
                 return new SixBitEncoder();
-            case EIGHT_BITS:
+            case BS_8:
                 return new EightBitEncoder();
             default:
                 throw new IllegalArgumentException("Unknown format: " + format);

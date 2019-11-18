@@ -40,9 +40,9 @@ public abstract class BitspeakDecoder {
      */
     public static BitspeakDecoder newDecoder(BitspeakFormat format) {
         switch (format) {
-            case SIX_BITS:
+            case BS_6:
                 return new SixBitDecoder();
-            case EIGHT_BITS:
+            case BS_8:
                 return new EightBitDecoder();
             default:
                 throw new IllegalArgumentException("Unknown format: " + format);
