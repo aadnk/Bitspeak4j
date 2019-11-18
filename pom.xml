@@ -38,6 +38,46 @@
                     </archive>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.1.1</version>
+                <configuration>
+                    <failOnError>false</failOnError>
+                    <encoding>UTF-8</encoding>
+                    <doctitle>Bitspeak JavaDocs</doctitle>
+                    <windowtitle>Bitspeak JavaDocs</windowtitle>
+                    <bottom>Copyright &#169; 2019&#x2013;{currentYear}
+                                Comphenix. Licensed under the GNU GPL v2.</bottom>
+                    <source>1.8</source>
+
+                    <!-- Hard to to satisfy linter - complains about no "summary" on tables, but then does not
+                         support summary attributes. So we disable it. -->
+                    <doclint>none</doclint>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 

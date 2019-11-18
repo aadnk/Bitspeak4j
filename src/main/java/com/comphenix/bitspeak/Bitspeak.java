@@ -17,9 +17,9 @@ import java.util.Collections;
  * It is also possible to convert streams of bitspeak characters or byte arrays using {@link Bitspeak#newEncodeStream(InputStream)}
  * or {@link Bitspeak#newDecodeStream(Reader)}.
  * </p>
- * <br></br>
+ * <br>
  * <h2>Examples</h2>
- * <table cellpadding="4">
+ * <table style="border-spacing: 4px">
  *   <tr>
  *     <th>Example</th>
  *     <th>Output</th>
@@ -100,7 +100,7 @@ public class Bitspeak {
      * </p>
      * <p>If the bit stream is not evenly divisible by 6, it might end with less bits than required by the
      * current lookup table (for instance, "11" when the consonant lookup table is active). In that case, the bit stream
-     * is padded with zeroes at the end (making the end "1100" in our example).</p>
+     * is padded with zeroes at the end (making the end "1100" in the previous example).</p>
      * <h2>Consonants lookup table:</h2>
      * <table>
      *   <tr>
@@ -173,7 +173,7 @@ public class Bitspeak {
      *   </tr>
      * </table>
      *
-     * <br></br>
+     * <br>
      * <h2>Vowels lookup table:</h2>
      * <table>
      *   <tr>
@@ -205,7 +205,7 @@ public class Bitspeak {
 
     /**
      * Retrieve a bitspeak format where every 8 bits (1 byte) is converted into a consonant and vowel pair, each up two
-     * 2 characters in length. The high-order of the byte is converted to a consonant, while the lowe-order is converted
+     * 2 characters in length. The high-order of the byte is converted to a consonant, while the lower order is converted
      * to a vowel, using the following lookup tables.
      * <h2>Consonants lookup table:</h2>
      * <table>
@@ -279,7 +279,7 @@ public class Bitspeak {
      *   </tr>
      * </table>
      *
-     * <br></br>
+     * <br>
      * <h2>Vowels lookup table:</h2>
      * <table>
      *   <tr>
@@ -550,8 +550,8 @@ public class Bitspeak {
      */
     public String name() {
         switch (format) {
-            case BS_6: return "bs6";
-            case BS_8: return "bs8";
+            case BS_6: return "BS-6";
+            case BS_8: return "BS-8";
             default:
                 throw new IllegalStateException("Unknown format: " + format);
         }
