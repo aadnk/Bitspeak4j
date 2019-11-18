@@ -1,4 +1,4 @@
-# BitspeakCodec
+# Bitspeak
 A Java-library for encoding/decoding byte streams into pronounceable text, based on a 
 Javascript implementation and specification in [MaiaVictor/Bitspeak](https://github.com/MaiaVictor/Bitspeak).
 
@@ -48,5 +48,5 @@ Dependency:
 </dependency>
 ```
 
-#License
+# License
 This project is under the the GPL v2 License, look at the LICENSE file for more informations.
