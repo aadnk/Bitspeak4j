@@ -2,6 +2,8 @@
 A Java-library for encoding/decoding byte streams into pronounceable text, based on a 
 Javascript implementation and specification in [MaiaVictor/Bitspeak](https://github.com/MaiaVictor/Bitspeak).
 
+* [JavaDoc](https://comphenix.net/bitspeak/index.html)
+
 ## Usage
 To convert a byte array, select the Bitspeak format you would like to use (either BS-6 or BS-8) 
 using `Bitspeak.bs6()` or `Bitspeak.bs8()`, then call the _decode_ method:
@@ -29,7 +31,7 @@ try (Reader reader = Bitspeak.bs6().newEncodeStream(Files.newInputStream(input))
 
 ## Maven
 
-You can use this as maven dependency. Repository:
+You can use this as a Maven dependency, using the following repository:
 ```XML
 <repository>
     <id>comphenix</id>
