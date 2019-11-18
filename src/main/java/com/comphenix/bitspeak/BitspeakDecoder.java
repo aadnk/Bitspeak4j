@@ -55,7 +55,7 @@ public abstract class BitspeakDecoder {
 
                 if (bufferLength > 0) {
                     int currentRead = getReadCount();
-                    int written = decodeBlock(buffer, bufferPosition, bufferLength, b, off, len);
+                    int written = decodeBlock(buffer, bufferPosition, bufferLength - bufferPosition, b, off, len);
 
                     bufferPosition += getReadCount() - currentRead;
                     return written;

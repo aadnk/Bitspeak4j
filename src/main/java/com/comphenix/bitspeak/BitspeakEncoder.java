@@ -40,7 +40,7 @@ public abstract class BitspeakEncoder {
 
                 if (bufferLength > 0) {
                     int currentRead = getReadCount();
-                    int written = encodeBlock(buffer, bufferPosition, bufferLength, cbuf, off, len);
+                    int written = encodeBlock(buffer, bufferPosition, bufferLength - bufferPosition, cbuf, off, len);
 
                     bufferPosition += getReadCount() - currentRead;
                     return written;
