@@ -42,22 +42,22 @@ public class BitspeakEncoderTest {
 
     private void testExample(String inputHex, String expectedBS6, String expectedBS8) {
         byte[] hex = BaseEncoding.base16().lowerCase().decode(inputHex);
-        assertEquals(expectedBS6, BitspeakEncoder.encode(hex, BitspeakFormat.BS_6));
-        assertEquals(expectedBS8, BitspeakEncoder.encode(hex, BitspeakFormat.BS_8));
+        assertEquals(expectedBS6, Bitspeak.bs6().encode(hex));
+        assertEquals(expectedBS8, Bitspeak.bs8().encode(hex));
     }
 
     @Test
     public void testPatternAA() {
-        assertEquals("", BitspeakEncoder.encode(generatePattern(0xAA, 0), BitspeakFormat.BS_6));
+        assertEquals("", Bitspeak.bs6().encode(generatePattern(0xAA, 0)));
         // We are padding at the end, necessary for streaming
-        assertEquals("lif", BitspeakEncoder.encode(generatePattern(0xAA, 1), BitspeakFormat.BS_6));
-        assertEquals("lilil", BitspeakEncoder.encode(generatePattern(0xAA, 2), BitspeakFormat.BS_6));
-        assertEquals("lililili", BitspeakEncoder.encode(generatePattern(0xAA, 3), BitspeakFormat.BS_6));
+        assertEquals("lif", Bitspeak.bs6().encode(generatePattern(0xAA, 1)));
+        assertEquals("lilil", Bitspeak.bs6().encode(generatePattern(0xAA, 2)));
+        assertEquals("lililili", Bitspeak.bs6().encode(generatePattern(0xAA, 3)));
     }
 
     @Test
     public void testEncoder() {
-        BitspeakEncoder encoder = BitspeakEncoder.newEncoder(BitspeakFormat.BS_6);
+        BitspeakEncoder encoder = BitspeakEncoder.newEncoder(Bitspeak.Format.BS_6);
         byte[] source = BaseEncoding.base16().lowerCase().decode("f81f9644042f"); // zipuzigikupakare
 
         char[] destination = new char[16];
@@ -83,7 +83,7 @@ public class BitspeakEncoderTest {
         byte[] source = BaseEncoding.base16().lowerCase().decode("f81f9644042f");
 
         // Test using a very small buffer size
-        Reader reader = BitspeakEncoder.newStream(new ByteArrayInputStream(source), BitspeakFormat.BS_6, 4);
+        Reader reader = Bitspeak.bs6().newEncodeStream(new ByteArrayInputStream(source), 4);
         assertTrue(reader.markSupported());
 
         // Full string: zipuzigikupakare

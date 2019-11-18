@@ -37,7 +37,7 @@ public class BitspeakDecoderTest {
     private void testExample(String inputBS6, String inputBS8, String expectedOutput) {
         byte[] expected = BaseEncoding.base16().lowerCase().decode(expectedOutput);
 
-        assertArrayEquals(expected, BitspeakDecoder.decode(inputBS6, BitspeakFormat.BS_6));
-        assertArrayEquals(expected, BitspeakDecoder.decode(inputBS8, BitspeakFormat.BS_8));
+        assertArrayEquals(expected, Bitspeak.bs6().decode(inputBS6));
+        assertArrayEquals(expected, Bitspeak.bs8().decode(inputBS8));
     }
 }

@@ -4,41 +4,20 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.util.Arrays;
 
 /**
  * A bitspeak decoder.
+ * <p>
+ * Use {@link Bitspeak} for common decode operations.
  */
 public abstract class BitspeakDecoder {
     protected int readCount;
     protected int writeCount;
 
-    public static byte[] decode(String bitspeak, BitspeakFormat format) {
-        return decode(bitspeak.toCharArray(), format);
-    }
-
-    public static byte[] decode(char[] bitspeak, BitspeakFormat format) {
-        return decode(bitspeak, 0, bitspeak.length, format);
-    }
-
-    public static byte[] decode(char[] bitspeak, int offset, int length, BitspeakFormat format) {
-        // Calculate buffer size
-        byte[] buffer = new byte[format.getMaxDecodeSize(length)];
-        int written = 0;
-
-        BitspeakDecoder decoder = BitspeakDecoder.newDecoder(format);
-
-        written += decoder.decodeBlock(bitspeak, offset, length, buffer, 0, buffer.length);
-        written += decoder.finishBlock(buffer, written, buffer.length - written);
-
-        // Create final array
-        return written < buffer.length ? Arrays.copyOf(buffer, written) : buffer;
-    }
-
     /**
      * Create a decoder for bitspeaks.
      */
-    public static BitspeakDecoder newDecoder(BitspeakFormat format) {
+    public static BitspeakDecoder newDecoder(Bitspeak.Format format) {
         switch (format) {
             case BS_6:
                 return new SixBitDecoder();
@@ -52,27 +31,15 @@ public abstract class BitspeakDecoder {
     /**
      * Create an input stream wrapping the given character input.
      * @param input the input.
-     * @param format the bitspeak format.
-     * @return The corresponding input stream.
-     */
-    public static InputStream newStream(Reader input, BitspeakFormat format) {
-        return newStream(input, format, 4096);
-    }
-
-    /**
-     * Create an input stream wrapping the given character input.
-     * @param input the input.
-     * @param format the bitspeak format.
      * @param bufferSize the buffer size.
      * @return The corresponding input stream.
      */
-    public static InputStream newStream(Reader input, BitspeakFormat format, int bufferSize) {
+    public InputStream wrap(Reader input, int bufferSize) {
         if (bufferSize < 1) {
             throw new IllegalArgumentException("bufferSize cannot be less than 1");
         }
         // Wrap in a buffered input stream - that way, we don't have to implement every stream method
         return new BufferedInputStream(new InputStream() {
-            private BitspeakDecoder decoder = newDecoder(format);
             private char[] buffer = new char[bufferSize];
             private int bufferPosition = 0;
             private int bufferLength = 0; // -1 if EOF
@@ -90,14 +57,14 @@ public abstract class BitspeakDecoder {
                 fillBuffer();
 
                 if (bufferLength > 0) {
-                    int currentRead = decoder.getReadCount();
-                    int written = decoder.decodeBlock(buffer, bufferPosition, bufferLength, b, off, len);
+                    int currentRead = getReadCount();
+                    int written = decodeBlock(buffer, bufferPosition, bufferLength, b, off, len);
 
-                    bufferPosition += decoder.getReadCount() - currentRead;
+                    bufferPosition += getReadCount() - currentRead;
                     return written;
                 } else {
                     // Finalize block
-                    int written = decoder.finishBlock(b, off, len);
+                    int written = finishBlock(b, off, len);
                     return written > 0 ? written : -1;
                 }
             }

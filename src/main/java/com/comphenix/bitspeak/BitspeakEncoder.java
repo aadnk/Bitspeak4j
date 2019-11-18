@@ -5,32 +5,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 
+/**
+ * A bitspeak encoder.
+ * <p>
+ * Use {@link Bitspeak} for common encode operations.
+ */
 public abstract class BitspeakEncoder {
     protected int readCount;
     protected int writeCount;
 
-    public static String encode(byte[] data, BitspeakFormat format) {
-        return encode(data, 0, data.length, format);
-    }
-
-    public static String encode(byte[] data, int offset, int length, BitspeakFormat format) {
-        // Calculate buffer size
-        char[] buffer = new char[format.getMaxEncodeSize(length)];
-        int written = 0;
-
-        BitspeakEncoder encoder = BitspeakEncoder.newEncoder(format);
-
-        written += encoder.encodeBlock(data, offset, length, buffer, 0, buffer.length);
-        written += encoder.finishBlock(buffer, written, buffer.length - written);
-
-        // Create final string
-        return new String(buffer, 0, written);
-    }
-
     /**
      * Create a decoder for bitspeaks.
      */
-    public static BitspeakEncoder newEncoder(BitspeakFormat format) {
+    public static BitspeakEncoder newEncoder(Bitspeak.Format format) {
         switch (format) {
             case BS_6:
                 return new SixBitEncoder();
@@ -41,17 +28,11 @@ public abstract class BitspeakEncoder {
         }
     }
 
-    public static Reader newStream(InputStream input, BitspeakFormat format) {
-        return newStream(input, format, 4096);
-    }
-
-    public static Reader newStream(InputStream input, BitspeakFormat format, int bufferSize) {
+    public Reader wrap(InputStream input, int bufferSize) {
         if (bufferSize < 1) {
             throw new IllegalArgumentException("bufferSize cannot be less than 1");
         }
         return new BufferedReader(new Reader() {
-            private BitspeakEncoder encoder = newEncoder(format);
-
             private byte[] buffer = new byte[bufferSize];
             private int bufferPosition = 0;
             private int bufferLength = 0; // -1 if EOF
@@ -61,14 +42,14 @@ public abstract class BitspeakEncoder {
                 fillBuffer();
 
                 if (bufferLength > 0) {
-                    int currentRead = encoder.getReadCount();
-                    int written = encoder.encodeBlock(buffer, bufferPosition, bufferLength, cbuf, off, len);
+                    int currentRead = getReadCount();
+                    int written = encodeBlock(buffer, bufferPosition, bufferLength, cbuf, off, len);
 
-                    bufferPosition += encoder.getReadCount() - currentRead;
+                    bufferPosition += getReadCount() - currentRead;
                     return written;
                 } else {
                     // Finalize block
-                    int written = encoder.finishBlock(cbuf, off, len);
+                    int written = finishBlock(cbuf, off, len);
                     return written > 0 ? written : -1;
                 }
             }
