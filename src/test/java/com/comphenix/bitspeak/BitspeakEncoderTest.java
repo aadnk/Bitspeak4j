@@ -7,8 +7,8 @@ import org.junit.Test;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.Arrays;
 
+import static com.comphenix.bitspeak.TestPatterns.generatePattern;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class BitspeakEncoderTest {
@@ -113,11 +113,5 @@ public class BitspeakEncoderTest {
             position += read;
         }
         return result;
-    }
-
-    private byte[] generatePattern(int value, int length) {
-        byte[] array = new byte[length];
-        Arrays.fill(array, (byte) value);
-        return array;
     }
 }
