@@ -28,16 +28,20 @@ public abstract class BitspeakDecoder {
     /**
      * Create an input stream wrapping the given character input.
      * @param input the input.
-     * @param bufferSize the buffer size.
+     * @param byteBufferSize the byte buffer size.
+     * @param charBufferSize the char buffer size.
      * @return The corresponding input stream.
      */
-    public InputStream wrap(Reader input, int bufferSize) {
-        if (bufferSize < 1) {
-            throw new IllegalArgumentException("bufferSize cannot be less than 1");
+    public InputStream wrap(Reader input, int byteBufferSize, int charBufferSize) {
+        if (byteBufferSize < 1) {
+            throw new IllegalArgumentException("byteBufferSize cannot be less than 1");
+        }
+        if (charBufferSize < 1) {
+            throw new IllegalArgumentException("charBufferSize cannot be less than 1");
         }
         // Wrap in a buffered input stream - that way, we don't have to implement every stream method
         return new BufferedInputStream(new InputStream() {
-            private char[] buffer = new char[bufferSize];
+            private char[] buffer = new char[charBufferSize];
             private int bufferPosition = 0;
             private int bufferLength = 0; // -1 if EOF
 
@@ -78,7 +82,7 @@ public abstract class BitspeakDecoder {
             public void close() throws IOException {
                 input.close();
             }
-        });
+        }, byteBufferSize);
     }
 
     /**

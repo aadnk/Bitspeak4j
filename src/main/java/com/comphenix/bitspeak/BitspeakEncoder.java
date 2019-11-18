@@ -25,12 +25,15 @@ public abstract class BitspeakEncoder {
         }
     }
 
-    public Reader wrap(InputStream input, int bufferSize) {
-        if (bufferSize < 1) {
-            throw new IllegalArgumentException("bufferSize cannot be less than 1");
+    public Reader wrap(InputStream input, int byteBufferSize, int charBufferSize) {
+        if (byteBufferSize < 1) {
+            throw new IllegalArgumentException("byteBufferSize cannot be less than 1");
+        }
+        if (charBufferSize < 1) {
+            throw new IllegalArgumentException("charBufferSize cannot be less than 1");
         }
         return new BufferedReader(new Reader() {
-            private byte[] buffer = new byte[bufferSize];
+            private byte[] buffer = new byte[byteBufferSize];
             private int bufferPosition = 0;
             private int bufferLength = 0; // -1 if EOF
 
@@ -63,7 +66,7 @@ public abstract class BitspeakEncoder {
             public void close() throws IOException {
                 input.close();
             }
-        });
+        }, charBufferSize);
     }
 
     /**
@@ -207,7 +210,7 @@ public abstract class BitspeakEncoder {
                 destination[destinationOffset + written++] = buffer[bufferPosition++];
             }
             for (; read < sourceLength && written < destinationLength; read++) {
-                int nextByte = source[read] & 0xFF;
+                int nextByte = source[sourceOffset + read] & 0xFF;
                 String consonant = CONSONANTS[nextByte >> 4];
                 String vowel = VOWELS[nextByte & 0xF];
 

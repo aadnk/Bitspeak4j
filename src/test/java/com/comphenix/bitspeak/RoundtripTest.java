@@ -35,12 +35,17 @@ public class RoundtripTest {
 
         byte[] data = new byte[64 * 1024];
         rnd.nextBytes(data);
-        
+
         testFormat(Bitspeak.bs6(), data);
         testFormat(Bitspeak.bs8(), data);
     }
 
     private void testFormat(Bitspeak bitspeak, byte[] data) throws IOException {
+        testByteArray(bitspeak, data);
+        testReaderStream(bitspeak, data);
+    }
+
+    private void testReaderStream(Bitspeak bitspeak, byte[] data) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         // Pass through streams
@@ -50,5 +55,14 @@ public class RoundtripTest {
         }
         // Verify output is the same
         assertArrayEquals(data, outputStream.toByteArray());
+    }
+
+    private void testByteArray(Bitspeak bitspeak, byte[] data) {
+        // Use byte arrays
+        String encodedString = bitspeak.encode(data);
+        byte[] decodedArray = bitspeak.decode(encodedString);
+
+        // Test byte array conversion
+        assertArrayEquals(data, decodedArray);
     }
 }

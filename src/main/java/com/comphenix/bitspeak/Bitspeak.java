@@ -94,7 +94,11 @@ public class Bitspeak {
     }
 
     public InputStream newDecodeStream(Reader reader, int bufferSize) {
-        return BitspeakDecoder.newDecoder(format).wrap(reader, bufferSize);
+        return BitspeakDecoder.newDecoder(format).wrap(reader, 2 * bufferSize, bufferSize);
+    }
+
+    public InputStream newDecodeStream(Reader reader, int byteBufferSize, int charBufferSize) {
+        return BitspeakDecoder.newDecoder(format).wrap(reader, byteBufferSize, charBufferSize);
     }
 
     public String encode(byte[] data) {
@@ -144,7 +148,11 @@ public class Bitspeak {
     }
 
     public Reader newEncodeStream(InputStream input, int bufferSize) {
-        return BitspeakEncoder.newEncoder(format).wrap(input, bufferSize);
+        return BitspeakEncoder.newEncoder(format).wrap(input, 2 * bufferSize, bufferSize);
+    }
+
+    public Reader newEncodeStream(InputStream input, int byteBufferSize, int charBufferSize) {
+        return BitspeakEncoder.newEncoder(format).wrap(input, byteBufferSize, charBufferSize);
     }
 
     @Override
