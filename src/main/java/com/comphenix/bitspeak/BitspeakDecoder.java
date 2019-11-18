@@ -14,10 +14,7 @@ public abstract class BitspeakDecoder {
     protected int readCount;
     protected int writeCount;
 
-    /**
-     * Create a decoder for bitspeaks.
-     */
-    public static BitspeakDecoder newDecoder(Bitspeak.Format format) {
+    static BitspeakDecoder newDecoder(Bitspeak.Format format) {
         switch (format) {
             case BS_6:
                 return new SixBitDecoder();

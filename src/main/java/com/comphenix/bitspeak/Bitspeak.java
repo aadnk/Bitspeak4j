@@ -9,8 +9,8 @@ import java.util.Collections;
 /**
  * Represents a bitspeak format (BS-6 or BS-8)
  */
-public final class Bitspeak {
-    public enum Format {
+public class Bitspeak {
+    enum Format {
         BS_6,
         BS_8
     }
@@ -41,23 +41,6 @@ public final class Bitspeak {
         return BITSPEAK_BS_8;
     }
 
-    public static Bitspeak fromFormat(Bitspeak.Format format) {
-        switch (format) {
-            case BS_6: return BITSPEAK_BS_6;
-            case BS_8: return BITSPEAK_BS_8;
-            default:
-                throw new IllegalArgumentException("Unknown format: " + format);
-        }
-    }
-
-    /**
-     * Retrieve the current format.
-     * @return The current format.
-     */
-    public Format getFormat() {
-        return format;
-    }
-
     public byte[] decode(String bitspeak) {
         return decode(bitspeak.toCharArray());
     }
@@ -71,8 +54,7 @@ public final class Bitspeak {
         byte[] buffer = new byte[estimateDecodeSize(length)];
         int written = 0;
 
-        BitspeakDecoder decoder = BitspeakDecoder.newDecoder(format);
-
+        BitspeakDecoder decoder = newDecoder();
         written += decoder.decodeBlock(bitspeak, offset, length, buffer, 0, buffer.length);
         written += decoder.finishBlock(buffer, written, buffer.length - written);
 
@@ -124,8 +106,7 @@ public final class Bitspeak {
         char[] buffer = new char[estimateEncodeSize(length)];
         int written = 0;
 
-        BitspeakEncoder encoder = BitspeakEncoder.newEncoder(format);
-
+        BitspeakEncoder encoder = newEncoder();
         written += encoder.encodeBlock(data, offset, length, buffer, 0, buffer.length);
         written += encoder.finishBlock(buffer, written, buffer.length - written);
 
@@ -134,7 +115,7 @@ public final class Bitspeak {
     }
 
     /**
-     * Retrieve the number of characters needed to store the given bytes with bitspeak.
+     * Retrieve the number of characters needed to store the given bytes with the current bitspeak format.
      * @param byteCount the number of bytes.
      * @return The maximum number of characters needed.
      */
@@ -164,5 +145,12 @@ public final class Bitspeak {
 
     public Reader newEncodeStream(InputStream input, int bufferSize) {
         return BitspeakEncoder.newEncoder(format).wrap(input, bufferSize);
+    }
+
+    @Override
+    public String toString() {
+        return "Bitspeak{" +
+                "format=" + format +
+                '}';
     }
 }
