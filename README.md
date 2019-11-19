@@ -17,7 +17,7 @@ The resulting string can be decoded using the _decode_ method:
 Bitspeak.bs6().decode("pakatape")); 
 ```
 
-It is also possible to convert the bytes in an _InputStream_ to a _Reader_ with encoded Bitspeak, 
+It is also possible to convert the bytes in an _InputStream_ to a _Reader_ containing encoded Bitspeak, 
 or the other way around:
 ```java
 Path input = Paths.get("input.data");
@@ -51,4 +51,4 @@ Dependency:
 ```
 
 # License
-This project is under the the GPL v2 License, look at the LICENSE file for more informations.
+This project is under the the GPL v2 License, consult the LICENSE file for more information.
