@@ -116,69 +116,69 @@ public class Bitspeak {
      *       <th>Bits</th>
      *       <th>Character</th>
      *   </tr>
-     *     <tr>
-     *     <td>0000<td>
-     *     <td>p</td>
+     *   <tr>
+     *     <td>0000</td>
+     *     <td align="center">p</td>
      *   </tr>
      *   <tr>
-     *     <td>0001<td>
-     *     <td>b</td>
+     *     <td>0001</td>
+     *     <td align="center">b</td>
      *   </tr>
      *   <tr>
-     *     <td>0010<td>
-     *     <td>t</td>
+     *     <td>0010</td>
+     *     <td align="center">t</td>
      *   </tr>
      *   <tr>
-     *     <td>0011<td>
-     *     <td>d</td>
+     *     <td>0011</td>
+     *     <td align="center">d</td>
      *   </tr>
      *   <tr>
-     *     <td>0100<td>
-     *     <td>k</td>
+     *     <td>0100</td>
+     *     <td align="center">k</td>
      *   </tr>
      *   <tr>
-     *     <td>0101<td>
-     *     <td>g</td>
+     *     <td>0101</td>
+     *     <td align="center">g</td>
      *   </tr>
      *   <tr>
-     *     <td>0110<td>
-     *     <td>x</td>
+     *     <td>0110</td>
+     *     <td align="center">x</td>
      *   </tr>
      *   <tr>
-     *     <td>0111<td>
-     *     <td>j</td>
+     *     <td>0111</td>
+     *     <td align="center">j</td>
      *   </tr>
      *   <tr>
-     *     <td>1000<td>
-     *     <td>f</td>
+     *     <td>1000</td>
+     *     <td align="center">f</td>
      *   </tr>
      *   <tr>
-     *     <td>1001<td>
-     *     <td>v</td>
+     *     <td>1001</td>
+     *     <td align="center">v</td>
      *   </tr>
      *   <tr>
-     *     <td>1010<td>
-     *     <td>l</td>
+     *     <td>1010</td>
+     *     <td align="center">l</td>
      *   </tr>
      *   <tr>
-     *     <td>1011<td>
-     *     <td>r</td>
+     *     <td>1011</td>
+     *     <td align="center">r</td>
      *   </tr>
      *   <tr>
-     *     <td>1100<td>
-     *     <td>m</td>
+     *     <td>1100</td>
+     *     <td align="center">m</td>
      *   </tr>
      *   <tr>
-     *     <td>1101<td>
-     *     <td>n</td>
+     *     <td>1101</td>
+     *     <td align="center">n</td>
      *   </tr>
      *   <tr>
-     *     <td>1110<td>
-     *     <td>s</td>
+     *     <td>1110</td>
+     *     <td align="center">s</td>
      *   </tr>
      *   <tr>
-     *     <td>1111<td>
-     *     <td>z</td>
+     *     <td>1111</td>
+     *     <td align="center">z</td>
      *   </tr>
      * </table>
      *
@@ -189,21 +189,21 @@ public class Bitspeak {
      *       <th>Bits</th>
      *       <th>Character</th>
      *   </tr>
-     *     <tr>
-     *     <td>00<td>
-     *     <td>a</td>
+     *   <tr>
+     *     <td>00</td>
+     *     <td align="center">a</td>
      *   </tr>
      *   <tr>
-     *     <td>01<td>
-     *     <td>u</td>
+     *     <td>01</td>
+     *     <td align="center">u</td>
      *   </tr>
      *   <tr>
-     *     <td>10<td>
-     *     <td>i</td>
+     *     <td>10</td>
+     *     <td align="center">i</td>
      *   </tr>
      *   <tr>
-     *     <td>11<td>
-     *     <td>e</td>
+     *     <td>11</td>
+     *     <td align="center">e</td>
      *   </tr>
      * </table>
      * @return A BS-6 bitspeak format.
@@ -216,148 +216,92 @@ public class Bitspeak {
      * Retrieve a bitspeak format where every 8 bits (1 byte) is converted into a consonant and vowel pair, each up two
      * 2 characters in length. The high-order of the byte is converted to a consonant, while the lower order is converted
      * to a vowel, using the following lookup tables.
-     * <h2>Consonants lookup table:</h2>
+     * <h2>Lookup tables:</h2>
      * <table>
      *   <tr>
      *     <th>Bits</th>
-     *     <th>Character</th>
+     *     <th align="center">Consonant</th>
+     *     <th align="center">Vowel</th>
      *   </tr>
      *   <tr>
-     *     <td>0000<td>
-     *     <td>p</td>
+     *     <td>0000</td>
+     *     <td align="center">p</td>
+     *     <td align="center">a</td>
      *   </tr>
      *   <tr>
-     *     <td>0001<td>
-     *     <td>b</td>
+     *     <td>0001</td>
+     *     <td align="center">b</td>
+     *     <td align="center">e</td>
      *   </tr>
      *   <tr>
-     *     <td>0010<td>
-     *     <td>t</td>
+     *     <td>0010</td>
+     *     <td align="center">t</td>
+     *     <td align="center">i</td>
      *   </tr>
      *   <tr>
-     *     <td>0011<td>
-     *     <td>d</td>
+     *     <td>0011</td>
+     *     <td align="center">d</td>
+     *     <td align="center">o</td>
      *   </tr>
      *   <tr>
-     *     <td>0100<td>
-     *     <td>k</td>
+     *     <td>0100</td>
+     *     <td align="center">k</td>
+     *     <td align="center">u</td>
      *   </tr>
      *   <tr>
-     *     <td>0101<td>
-     *     <td>g</td>
+     *     <td>0101</td>
+     *     <td align="center">g</td>
+     *     <td align="center">an</td>
      *   </tr>
      *   <tr>
-     *     <td>0110<td>
-     *     <td>ch</td>
+     *     <td>0110</td>
+     *     <td align="center">ch</td>
+     *     <td align="center">en</td>
      *   </tr>
      *   <tr>
-     *     <td>0111<td>
-     *     <td>j</td>
+     *     <td>0111</td>
+     *     <td align="center">j</td>
+     *     <td align="center">in</td>
      *   </tr>
      *   <tr>
-     *     <td>1000<td>
-     *     <td>f</td>
+     *     <td>1000</td>
+     *     <td align="center">f</td>
+     *     <td align="center">un</td>
      *   </tr>
      *   <tr>
-     *     <td>1001<td>
-     *     <td>v</td>
+     *     <td>1001</td>
+     *     <td align="center">v</td>
+     *     <td align="center">on</td>
      *   </tr>
      *   <tr>
-     *     <td>1010<td>
-     *     <td>l</td>
+     *     <td>1010</td>
+     *     <td align="center">l</td>
+     *     <td align="center">ai</td>
      *   </tr>
      *   <tr>
-     *     <td>1011<td>
-     *     <td>r</td>
+     *     <td>1011</td>
+     *     <td align="center">r</td>
+     *     <td align="center">ei</td>
      *   </tr>
      *   <tr>
-     *     <td>1100<td>
-     *     <td>m</td>
+     *     <td>1100</td>
+     *     <td align="center">m</td>
+     *     <td align="center">oi</td>
      *   </tr>
      *   <tr>
-     *     <td>1101<td>
-     *     <td>y</td>
+     *     <td>1101</td>
+     *     <td align="center">y</td>
+     *     <td align="center">ui</td>
      *   </tr>
      *   <tr>
-     *     <td>1110<td>
-     *     <td>s</td>
+     *     <td>1110</td>
+     *     <td align="center">s</td>
+     *     <td align="center">aw</td>
      *   </tr>
      *   <tr>
-     *     <td>1111<td>
-     *     <td>z</td>
-     *   </tr>
-     * </table>
-     *
-     * <br>
-     * <h2>Vowels lookup table:</h2>
-     * <table>
-     *   <tr>
-     *     <th>Bits</th>
-     *     <th>Character</th>
-     *   </tr>
-     *     <tr>
-     *     <td>0000<td>
-     *     <td>a</td>
-     *   </tr>
-     *   <tr>
-     *     <td>0001<td>
-     *     <td>e</td>
-     *   </tr>
-     *   <tr>
-     *     <td>0010<td>
-     *     <td>i</td>
-     *   </tr>
-     *   <tr>
-     *     <td>0011<td>
-     *     <td>o</td>
-     *   </tr>
-     *   <tr>
-     *     <td>0100<td>
-     *     <td>u</td>
-     *   </tr>
-     *   <tr>
-     *     <td>0101<td>
-     *     <td>an</td>
-     *   </tr>
-     *   <tr>
-     *     <td>0110<td>
-     *     <td>en</td>
-     *   </tr>
-     *   <tr>
-     *     <td>0111<td>
-     *     <td>in</td>
-     *   </tr>
-     *   <tr>
-     *     <td>1000<td>
-     *     <td>un</td>
-     *   </tr>
-     *   <tr>
-     *     <td>1001<td>
-     *     <td>on</td>
-     *   </tr>
-     *   <tr>
-     *     <td>1010<td>
-     *     <td>ai</td>
-     *   </tr>
-     *   <tr>
-     *     <td>1011<td>
-     *     <td>ei</td>
-     *   </tr>
-     *   <tr>
-     *     <td>1100<td>
-     *     <td>oi</td>
-     *   </tr>
-     *   <tr>
-     *     <td>1101<td>
-     *     <td>ui</td>
-     *   </tr>
-     *   <tr>
-     *     <td>1110<td>
-     *     <td>aw</td>
-     *   </tr>
-     *   <tr>
-     *     <td>1111<td>
-     *     <td>ow</td>
+     *     <td>1111</td>
+     *     <td align="center">z</td>
+     *     <td align="center">ow</td>
      *   </tr>
      * </table>
      * @return A BS-8 bitspeak format.
