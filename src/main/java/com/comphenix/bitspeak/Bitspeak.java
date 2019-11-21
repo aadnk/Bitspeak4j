@@ -476,13 +476,28 @@ public class Bitspeak {
         switch (format) {
             case BS_6:
                 long bits = (long)byteCount * 8;
-                return (int) (2 * (bits / 6) + (bits % 6 == 0 ? 0 : 1));
+                int characters = (int) (2 * (bits / 6) + (bits % 6 == 0 ? 0 : 1));
+
+                return adjustDelimiterCount(characters);
+
             case BS_8:
                 // could be as much as 4 characters per byte (0110 0101 -> shan)
-                return 4 * byteCount;
+                return adjustDelimiterCount(4 * byteCount);
             default:
                 throw new IllegalArgumentException("Unknown format: " + this);
         }
+    }
+
+    private int adjustDelimiterCount(int characters) {
+        if (config.getMaxWordSize() > 0 || config.getMaxLineSize() > 0) {
+            int words = config.getMaxWordSize() > 0 ? (int) Math.ceil(characters / (double) config.getMaxWordSize()) : 0;
+
+            characters += config.getWordDelimiter().length() * words;
+            int lines = config.getMaxLineSize() > 0 ? (int) Math.ceil(characters / (double) config.getMaxLineSize()) : 0;
+
+            characters += config.getLineDelimiter().length() * lines;
+        }
+        return characters;
     }
 
     /**

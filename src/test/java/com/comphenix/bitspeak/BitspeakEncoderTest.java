@@ -66,9 +66,9 @@ public class BitspeakEncoderTest {
 
     @Test
     public void testWordSplitter() {
-        Bitspeak bs8 = Bitspeak.bs8().withConfig(BitspeakConfig.newBuilder().withMaxLineSize(8).withMaxWordSize(5).build());
+        Bitspeak bs6 = Bitspeak.bs6().withConfig(BitspeakConfig.newBuilder().withMaxLineSize(8).withMaxWordSize(5).build());
 
-        System.out.println(bs8.encode(BaseEncoding.base16().decode("0102030405060708091001020304050607080910")));
+        System.out.println(bs6.encode(BaseEncoding.base16().decode("0102030405060708091001020304050607080910")));
     }
 
     @Test
@@ -76,7 +76,7 @@ public class BitspeakEncoderTest {
         BitspeakEncoder encoder = BitspeakEncoder.newEncoder(Bitspeak.Format.BS_6, BitspeakConfig.defaultConfig());
         byte[] source = BaseEncoding.base16().lowerCase().decode("f81f9644042f"); // zipuzigikupakare
 
-        char[] destination = new char[16];
+        char[] destination = new char[32];
         int destinationPos = 0;
 
         // Write f8
@@ -91,7 +91,7 @@ public class BitspeakEncoderTest {
 
         // Must always end with finish block
         destinationPos += encoder.finishBlock(destination, destinationPos, destination.length - destinationPos);
-        assertEquals("zipuzigikupakare", new String(destination, 0, destinationPos));
+        assertEquals("zipuzigi-kupakare", new String(destination, 0, destinationPos));
     }
 
     @Test
@@ -113,7 +113,7 @@ public class BitspeakEncoderTest {
         assertArrayEquals(chunkA, chunkB);
 
         String remaining = CharStreams.toString(reader);
-        assertEquals("igikupakare", remaining);
+        assertEquals("igi-kupakare", remaining);
     }
 
     private char[] readFully(Reader reader, int length) throws IOException {

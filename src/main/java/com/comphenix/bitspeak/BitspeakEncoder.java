@@ -128,7 +128,13 @@ public abstract class BitspeakEncoder {
     private static class SixBitEncoder extends BitspeakEncoder {
         private static final char[] CONSONANTS = { 'p', 'b', 't', 'd', 'k', 'g', 'x', 'j', 'f', 'v', 'l', 'r', 'm', 'n', 's', 'z' };
         private static final char[] VOWELS = { 'a', 'u', 'i', 'e' };
-        private final BitspeakConfig config;
+
+        private static final int STATE_MASK_TYPE = 1;               // Mask for consonant/vowel
+        private static final int STATE_WRITE_CONSONANT = 0;         // Write first character of consonant
+        private static final int STATE_WRITE_VOWEL = 1;             // Write first character of vowel
+        private static final int STATE_FLAG_WRITE_WHITESPACE = 2;   // Must write whitespace first
+
+        private final WhitespaceManager whitespaceManager;
 
         private final int CONSONANT_BITS = 4;
         private final int VOWELS_BITS = 2;
@@ -137,10 +143,10 @@ public abstract class BitspeakEncoder {
         private int currentBufferLength;
 
         // Consonant first
-        private boolean currentConsonant = true;
+        private int currentState = STATE_WRITE_CONSONANT;
 
-        public SixBitEncoder(BitspeakConfig config) {
-            this.config = Objects.requireNonNull(config, "config cannot be NULL");
+        SixBitEncoder(BitspeakConfig config) {
+            this.whitespaceManager = new WhitespaceManager(config);
         }
 
         @Override
@@ -150,31 +156,54 @@ public abstract class BitspeakEncoder {
 
             int buffer = currentBuffer;
             int bufferLength = currentBufferLength;
-            boolean consonant = currentConsonant;
+            int state = currentState;
 
-            for (; read < sourceLength && written < destinationLength; written++) {
+            for (; written < destinationLength; ) {
+                if ((state & STATE_FLAG_WRITE_WHITESPACE) != 0) {
+                    int whitespace = whitespaceManager.writeDelimiter(destination,
+                            destinationOffset + written, destinationLength - written);
+
+                    // More whitespace characters to write
+                    if (whitespace > 0) {
+                        written += whitespace;
+                        continue;
+                    }
+                    // Done writing whitespace
+                    state &= ~STATE_FLAG_WRITE_WHITESPACE;
+                }
+                boolean consonant = (state & STATE_MASK_TYPE) == STATE_WRITE_CONSONANT;
+
                 // Add bits to buffer if needed
                 if (bufferLength < (consonant ? 4 : 2)) {
-                    buffer = buffer << 8 | source[sourceOffset + read] & 0xFF;
+                    if (source == null || read >= sourceLength) {
+                        // We are done
+                        break;
+                    }
+                    buffer = buffer << 8 | source[sourceOffset + read++] & 0xFF;
                     bufferLength += 8;
-                    read++;
                 }
 
+                if (whitespaceManager.beginOutput(1) < 1) {
+                    // Write whitespace first
+                    state |= STATE_FLAG_WRITE_WHITESPACE;
+                    continue;
+                }
                 if (consonant) {
-                    destination[destinationOffset + written] = CONSONANTS[buffer >>> (bufferLength - CONSONANT_BITS)];
+                    destination[destinationOffset + written++] = CONSONANTS[buffer >>> (bufferLength - CONSONANT_BITS)];
                     buffer &= ~(0xF << (bufferLength - CONSONANT_BITS));
                     bufferLength -= CONSONANT_BITS;
+                    state |= STATE_WRITE_VOWEL;
                 } else {
-                    destination[destinationOffset + written] = VOWELS[buffer >>> (bufferLength - VOWELS_BITS)];
+                    destination[destinationOffset + written++] = VOWELS[buffer >>> (bufferLength - VOWELS_BITS)];
                     buffer &= ~(0x3 << (bufferLength - VOWELS_BITS));
                     bufferLength -= VOWELS_BITS;
+                    state &= ~STATE_WRITE_VOWEL;
                 }
-                consonant = !consonant;
             }
             // Save state
             currentBuffer = buffer;
             currentBufferLength = bufferLength;
-            currentConsonant = consonant;
+            currentState = state;
 
             readCount += read;
             writeCount += written;
@@ -187,9 +216,28 @@ public abstract class BitspeakEncoder {
 
             int buffer = currentBuffer;
             int bufferLength = currentBufferLength;
-            boolean consonant = currentConsonant;
+            int state = currentState;
 
-            for (; written < destinationLength && bufferLength > 0; written++) {
+            for (; written < destinationLength && bufferLength > 0; ) {
+                if ((state & STATE_FLAG_WRITE_WHITESPACE) != 0) {
+                    int whitespace = whitespaceManager.writeDelimiter(destination,
+                            destinationOffset + written, destinationLength - written);
+
+                    // More whitespace characters to write
+                    if (whitespace > 0) {
+                        written += whitespace;
+                        continue;
+                    }
+                    // Done writing whitespace
+                    state &= ~STATE_FLAG_WRITE_WHITESPACE;
+                }
+                boolean consonant = (state & STATE_MASK_TYPE) == STATE_WRITE_CONSONANT;
+
+                if (whitespaceManager.beginOutput(1) < 1) {
+                    // Write whitespace first
+                    state |= STATE_FLAG_WRITE_WHITESPACE;
+                    continue;
+                }
                 if (consonant) {
                     // Pad with zero
                     if (bufferLength < 4) {
@@ -197,19 +245,20 @@ public abstract class BitspeakEncoder {
                         buffer <<= padding;
                         bufferLength += padding;
                     }
-                    destination[destinationOffset + written] = CONSONANTS[buffer >>> (bufferLength - CONSONANT_BITS)];
+                    destination[destinationOffset + written++] = CONSONANTS[buffer >>> (bufferLength - CONSONANT_BITS)];
                     buffer &= ~(0xF << (bufferLength - CONSONANT_BITS));
                     bufferLength -= CONSONANT_BITS;
+                    state |= STATE_WRITE_VOWEL;
                 } else {
-                    destination[destinationOffset + written] = VOWELS[buffer >>> (bufferLength - VOWELS_BITS)];
+                    destination[destinationOffset + written++] = VOWELS[buffer >>> (bufferLength - VOWELS_BITS)];
                     buffer &= ~(0x3 << (bufferLength - VOWELS_BITS));
                     bufferLength -= VOWELS_BITS;
+                    state &= ~STATE_WRITE_VOWEL;
                 }
-                consonant = !consonant;
             }
             currentBuffer = buffer;
             currentBufferLength = bufferLength;
-            currentConsonant = consonant;
+            currentState = state;
 
             writeCount += written;
             return written;
@@ -224,7 +273,7 @@ public abstract class BitspeakEncoder {
 
         private static final int STATE_FLAG_WRITE_CONSONANT = 1;      // Write first character of consonant
         private static final int STATE_FLAG_WRITE_VOWEL = 2;          // Write first character of vowel
-        private static final int STATE_FLAG_WRITTEN_FIRST = 4;            // Write the last character in the consonant/vowel
+        private static final int STATE_FLAG_WRITTEN_FIRST = 4;        // The first character in the consonant/vowel has been written
         private static final int STATE_FLAG_WHITESPACE_CHECKED = 8;   // Whitespace has been checked.
         private static final int STATE_FLAG_WRITE_WHITESPACE = 16;    // Must write whitespace first
 
@@ -233,7 +282,7 @@ public abstract class BitspeakEncoder {
         private int nextState = STATE_READ_BYTE;
         private int nextByte = 0;
 
-        public EightBitEncoder(BitspeakConfig config) {
+        EightBitEncoder(BitspeakConfig config) {
             this.whitespaceManager = new WhitespaceManager(config);
         }
 
@@ -345,15 +394,10 @@ public abstract class BitspeakEncoder {
         private Delimiter currentDelimiter = Delimiter.NONE;
         private int delimiterPosition;
 
-        public WhitespaceManager(BitspeakConfig config) {
+        WhitespaceManager(BitspeakConfig config) {
             this.config = Objects.requireNonNull(config, "config cannot be NULL");
             this.maxWordSize = config.getMaxWordSize();
             this.maxLineSize = config.getMaxLineSize();
-        }
-
-        public String getCurrentDelimiter() {
-            return currentDelimiter == Delimiter.LINE ? config.getLineDelimiter() :
-                    (currentDelimiter == Delimiter.WORD ? config.getWordDelimiter() : "");
         }
 
         /**
@@ -361,7 +405,7 @@ public abstract class BitspeakEncoder {
          * @param length the number of characters to write.
          * @return The amount of characters permitted, or 0 if a delimiter must be written first.
          */
-        public int beginOutput(int length) {
+        int beginOutput(int length) {
             Delimiter nextDelimiter = currentDelimiter;
 
             if (nextDelimiter != Delimiter.NONE) {
