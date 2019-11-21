@@ -27,52 +27,54 @@ import java.util.Objects;
  * It is also possible to convert streams of bitspeak characters or byte arrays using {@link Bitspeak#newEncodeStream(InputStream)}
  * or {@link Bitspeak#newDecodeStream(Reader)}.
  * </p>
+ * By default, the BS-6 and BS-8 encoders will insert a word delimiter (-) every 6 characters, and a line delimiter
+ * every 160 characters written to the output. This can be configured using {@link #withConfig(BitspeakConfig)}.
  * <br>
  * <h2>Examples</h2>
- * <table style="border-spacing: 4px">
+ * <table style="border-spacing: 4px"
  *   <tr>
  *     <th>Example</th>
  *     <th>Output</th>
  *   </tr>
  *   <tr>
- *     <td><code>Bitspeak.bs6().encode(new byte[] { 1 })</code></td>
+ *     <td><code>Bitspeak.BS-6().encode(new byte[] { 1 })</code></td>
  *     <td>"pak"</td>
  *   </tr>
  *   <tr>
- *     <td><code>Bitspeak.bs8().encode(new byte[] { 1 })</code></td>
+ *     <td><code>Bitspeak.BS-8().encode(new byte[] { 1 })</code></td>
  *     <td>"pe"</td>
  *   </tr>
  *   <tr>
- *     <td><code>Bitspeak.bs6().encode(new byte[] { 1, 2 })</code></td>
+ *     <td><code>Bitspeak.BS-6().encode(new byte[] { 1, 2 })</code></td>
  *     <td>"pakat"</td>
  *   </tr>
  *   <tr>
- *     <td><code>Bitspeak.bs8().encode(new byte[] { 1, 2 })</code></td>
+ *     <td><code>Bitspeak.BS-8().encode(new byte[] { 1, 2 })</code></td>
  *     <td>"pepi"</td>
  *   </tr>
  *   <tr>
- *     <td><code>Bitspeak.bs6().encode(new byte[] { 1, 2, 3 })</code></td>
+ *     <td><code>Bitspeak.BS-6().encode(new byte[] { 1, 2, 3 })</code></td>
  *     <td>"pakatape"</td>
  *   </tr>
  *   <tr>
- *     <td><code>Bitspeak.bs8().encode(new byte[] { 1, 2, 3 })</code></td>
+ *     <td><code>Bitspeak.BS-8().encode(new byte[] { 1, 2, 3 })</code></td>
  *     <td>"pepipo"</td>
  *   </tr>
  *   <tr>
- *     <td><code>Bitspeak.bs6().encode(new byte[] { 1, 2, 3, 4 })</code></td>
- *     <td>"pakatapepup"</td>
+ *     <td><code>Bitspeak.BS-6().encode(new byte[] { 1, 2, 3, 4 })</code></td>
+ *     <td>"pakatape-pup"</td>
  *   </tr>
  *   <tr>
- *     <td><code>Bitspeak.bs8().encode(new byte[] { 1, 2, 3, 4 })</code></td>
+ *     <td><code>Bitspeak.BS-8().encode(new byte[] { 1, 2, 3, 4 })</code></td>
  *     <td>"pepipopu"</td>
  *   </tr>
  *   <tr>
- *     <td><code>Bitspeak.bs6().encode(new byte[] { -34, -83, -66, -17, 1, 2, 3 })</code></td>
- *     <td>"nelinizisemabapipam"</td>
+ *     <td><code>Bitspeak.BS-6().encode(new byte[] { -34, -83, -66, -17, 1, 2, 3 })</code></td>
+ *     <td>"nelinizi-semabapi-pam"</td>
  *   </tr>
  *   <tr>
- *     <td><code>Bitspeak.bs8().encode(new byte[] { -34, -83, -66, -17, 1, 2, 3 })</code></td>
- *     <td>"yawluirawsowpepipo"</td>
+ *     <td><code>Bitspeak.BS-8().encode(new byte[] { -34, -83, -66, -17, 1, 2, 3 })</code></td>
+ *     <td>"yawluir-awsowpep-ipo"</td>
  *   </tr>
  * </table>
  * @see <a href="https://github.com/MaiaVictor/Bitspeak">https://github.com/MaiaVictor/Bitspeak</a>

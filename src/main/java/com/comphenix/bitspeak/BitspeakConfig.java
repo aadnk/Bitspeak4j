@@ -66,7 +66,7 @@ public class BitspeakConfig {
     /**
      * Retrieve the predicate that matches characters that will be silently skipped by the decoder.
      * <p>
-     * By default, this is all whitespace characters (as given by {@link Character#isWhitespace(char)} and the
+     * By default, this is all whitespace characters as given by {@link Character#isWhitespace(char)} and the
      * special characters "-" and "_".
      * @return A predicate matching characters that will be skipped.
      */

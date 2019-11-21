@@ -88,18 +88,16 @@ public class RoundtripTest {
 
     @Test
     public void printPatterns() {
-        String[] hexes = { "AB", "ABAB", "ABABAB", "ABABABAB", "ABABABABAB" };
+        String[] hexes = { "01", "0102", "010203", "01020304", "DEADBEEF010203" };
 
-        System.out.println("<table cellpadding=\"4\">");
+        System.out.println("<table style=\"border-spacing: 4px\"");
         System.out.println("  <tr>");
         System.out.println("    <th>Example</th>");
         System.out.println("    <th>Output</th>");
         System.out.println("  </tr>");
 
         for (String hex : hexes) {
-            Bitspeak bitspeak = Bitspeak.bs6();
-
-            //for (Bitspeak bitspeak : Bitspeak.formats()) {
+            for (Bitspeak bitspeak : Bitspeak.formats()) {
                 System.out.println("  <tr>");
 
                 System.out.print("    <td><code>Bitspeak." + bitspeak.name() + "().encode(new byte[] { ");
@@ -111,7 +109,7 @@ public class RoundtripTest {
                 System.out.println("    <td>\"" + output + "\"</td>");
 
                 System.out.println("  </tr>");
-            //}
+            }
         }
         System.out.println("</table>");
     }
