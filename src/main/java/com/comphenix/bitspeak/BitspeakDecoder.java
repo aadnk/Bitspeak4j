@@ -9,10 +9,13 @@
 
 package com.comphenix.bitspeak;
 
+import com.comphenix.bitspeak.function.CharPredicate;
+
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.util.Objects;
 
 /**
  * A bitspeak decoder. <i>Use {@link Bitspeak} for common decode operations.</i>
@@ -30,12 +33,12 @@ public abstract class BitspeakDecoder {
     protected long readCount;
     protected long writeCount;
 
-    static BitspeakDecoder newDecoder(Bitspeak.Format format) {
+    static BitspeakDecoder newDecoder(Bitspeak.Format format, BitspeakConfig config) {
         switch (format) {
             case BS_6:
-                return new SixBitDecoder();
+                return new SixBitDecoder(config);
             case BS_8:
-                return new EightBitDecoder();
+                return new EightBitDecoder(config);
             default:
                 throw new IllegalArgumentException("Unknown format: " + format);
         }
@@ -157,9 +160,14 @@ public abstract class BitspeakDecoder {
 
     private static class SixBitDecoder extends BitspeakDecoder {
         private final BitWriter bitWriter = new BitWriter();
+        private final BitspeakConfig config;
 
         // Must start with a consonant
         private boolean nextConsonant = true;
+
+        public SixBitDecoder(BitspeakConfig config) {
+            this.config = Objects.requireNonNull(config, "config cannot be NULL");
+        }
 
         @Override
         public int decodeBlock(char[] source, int sourceOffset, int sourceLength, byte[] destination, int destinationOffset, int destinationLength) {
@@ -167,9 +175,15 @@ public abstract class BitspeakDecoder {
             int written = 0;
             boolean consonant = nextConsonant;
 
+            CharPredicate skipChar = config.getSkipCharPredicate();
+
             for (read = 0; read < sourceLength && written < destinationLength; read++) {
                 char character = source[read];
 
+                // Completely skip whitespace (do not save as prev char)
+                if (skipChar.test(character)) {
+                    continue;
+                }
                 if (consonant) {
                     switch (character) {
                         case 'p':
@@ -277,11 +291,16 @@ public abstract class BitspeakDecoder {
         private static final int STATE_BEGIN_VOWEL = 2;
         private static final int STATE_ENDING_VOWEL = 3;
 
+        private final BitspeakConfig config;
         private final BitWriter bitWriter = new BitWriter();
 
         // Must start with a consonant
         private int nextState = STATE_BEGIN_CONSONANT;
         private char prevChar = '\0';
+
+        public EightBitDecoder(BitspeakConfig config) {
+            this.config = Objects.requireNonNull(config, "config cannot be NULL");
+        }
 
         @Override
         public int decodeBlock(char[] source, int sourceOffset, int sourceLength, byte[] destination, int destinationOffset, int destinationLength) {
@@ -291,9 +310,15 @@ public abstract class BitspeakDecoder {
             int state = nextState;
             char prev = prevChar;
 
+            CharPredicate skipChar = config.getSkipCharPredicate();
+
             for (read = 0; read < sourceLength && written < destinationLength; read++) {
                 char character = source[read];
 
+                // Completely skip whitespace (do not save as prev char)
+                if (skipChar.test(character)) {
+                    continue;
+                }
                 if (state == STATE_BEGIN_CONSONANT) {
                     switch (character) {
                         case 'p':

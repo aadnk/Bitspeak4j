@@ -26,17 +26,20 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 public class RoundtripTest {
     @Test
     public void testAbPattern() {
-        for (Bitspeak bitspeak : Bitspeak.formats()) {
-            for (int i = 0; i < 64; i++) {
-                byte[] input = generatePattern(0xAB, i);
-                String encoded = bitspeak.encode(input);
+        testAbPattern(Bitspeak.bs6());
+        testAbPattern(Bitspeak.bs8());
+    }
 
-                // Also check estimated lengths
-                checkLengthEstimates(bitspeak, input, encoded);
+    private void testAbPattern(Bitspeak bitspeak) {
+        for (int i = 0; i < 64; i++) {
+            byte[] input = generatePattern(0xAB, i);
+            String encoded = bitspeak.encode(input);
 
-                byte[] decoded = bitspeak.decode(encoded);
-                assertArrayEquals(input, decoded);
-            }
+            // Also check estimated lengths
+            checkLengthEstimates(bitspeak, input, encoded);
+
+            byte[] decoded = bitspeak.decode(encoded);
+            assertArrayEquals(input, decoded);
         }
     }
 

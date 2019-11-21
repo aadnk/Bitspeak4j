@@ -51,8 +51,8 @@ public class BitspeakEncoderTest {
 
     private void testExample(String inputHex, String expectedBS6, String expectedBS8) {
         byte[] hex = BaseEncoding.base16().lowerCase().decode(inputHex);
-        assertEquals(expectedBS6, Bitspeak.bs6().encode(hex));
-        assertEquals(expectedBS8, Bitspeak.bs8().encode(hex));
+        assertEquals(expectedBS6, Bitspeak.bs6().withConfig(BitspeakConfig.unlimitedWordSize()).encode(hex));
+        assertEquals(expectedBS8, Bitspeak.bs8().withConfig(BitspeakConfig.unlimitedWordSize()).encode(hex));
     }
 
     @Test
@@ -66,9 +66,9 @@ public class BitspeakEncoderTest {
 
     @Test
     public void testWordSplitter() {
-        Bitspeak bs8 = Bitspeak.bs8().withConfig(BitspeakConfig.newBuilder().withMaxWordSize(4).build());
+        Bitspeak bs8 = Bitspeak.bs8().withConfig(BitspeakConfig.newBuilder().withMaxLineSize(8).withMaxWordSize(5).build());
 
-        System.out.println(bs8.encode(BaseEncoding.base16().decode("01020304050607080910")));
+        System.out.println(bs8.encode(BaseEncoding.base16().decode("0102030405060708091001020304050607080910")));
     }
 
     @Test

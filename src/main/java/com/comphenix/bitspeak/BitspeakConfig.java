@@ -9,6 +9,7 @@ import java.util.Objects;
  */
 public class BitspeakConfig {
     private static BitspeakConfig DEFAULT = BitspeakConfig.newBuilder().build();
+    private static BitspeakConfig UNLIMITED_WORD_SIZE = BitspeakConfig.newBuilder().withMaxLineSize(-1).withMaxWordSize(-1).build();
 
     private final int maxWordSize;
     private final String wordDelimiter;
@@ -70,6 +71,14 @@ public class BitspeakConfig {
      */
     public static BitspeakConfig defaultConfig() {
         return DEFAULT;
+    }
+
+    /**
+     * Retrieve a bitspeak configuration with infinite word and line size.
+     * @return A bitspeak configuration.
+     */
+    public static BitspeakConfig unlimitedWordSize() {
+        return UNLIMITED_WORD_SIZE;
     }
 
     public static Builder newBuilder() {

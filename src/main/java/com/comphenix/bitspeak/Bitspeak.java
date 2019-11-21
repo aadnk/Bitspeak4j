@@ -388,7 +388,7 @@ public class Bitspeak {
      * @return A new bitspeak decoder.
      */
     public BitspeakDecoder newDecoder() {
-        return BitspeakDecoder.newDecoder(format);
+        return BitspeakDecoder.newDecoder(format, config);
     }
 
     /**
@@ -438,16 +438,30 @@ public class Bitspeak {
      * @return The encoded characters.
      */
     public String encode(byte[] data, int offset, int length) {
-        // Calculate buffer size
-        char[] buffer = new char[estimateEncodeSize(length)];
-        int written = 0;
+        // Buffer was not large enough
+        StringBuilder builder = new StringBuilder(estimateEncodeSize(length));
 
         BitspeakEncoder encoder = newEncoder();
-        written += encoder.encodeBlock(data, offset, length, buffer, 0, buffer.length);
-        written += encoder.finishBlock(buffer, written, buffer.length - written);
+        char[] buffer = new char[4096];
 
-        // Create final string
-        return new String(buffer, 0, written);
+        while (encoder.getReadCount() < length) {
+            int readCount = (int) encoder.getReadCount();
+
+            int written = encoder.encodeBlock(data, readCount, length - readCount,
+                    buffer, 0, buffer.length);
+            builder.append(buffer, 0, written);
+        }
+
+        // Finish writing
+        while (true) {
+            int written = encoder.finishBlock(buffer, 0, buffer.length);
+
+            if (written <= 0) {
+                break;
+            }
+            builder.append(buffer, 0, written);
+        }
+        return builder.toString();
     }
 
     /**

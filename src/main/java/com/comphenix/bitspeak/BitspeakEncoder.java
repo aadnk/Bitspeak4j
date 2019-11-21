@@ -221,10 +221,12 @@ public abstract class BitspeakEncoder {
         private static final String[] VOWELS = { "a", "e", "i", "o", "u", "an", "en", "in", "un", "on", "ai", "ei", "oi", "ui", "aw", "ow" };
 
         private static final int STATE_READ_BYTE = 0;                 // Read the next byte to output
-        private static final int STATE_WRITE_CONSONANT_START = 1;     // Write first character of consonant
-        private static final int STATE_WRITE_CONSONANT_END = 2;       // Write second character of consonant (if any)
-        private static final int STATE_WRITE_VOWEL_START = 3;         // Write first character of vowel
-        private static final int STATE_WRITE_VOWEL_END = 4;           // Write first character of vowel (if any)
+
+        private static final int STATE_FLAG_WRITE_CONSONANT = 1;      // Write first character of consonant
+        private static final int STATE_FLAG_WRITE_VOWEL = 2;          // Write first character of vowel
+        private static final int STATE_FLAG_WRITTEN_FIRST = 4;            // Write the last character in the consonant/vowel
+        private static final int STATE_FLAG_WHITESPACE_CHECKED = 8;   // Whitespace has been checked.
+        private static final int STATE_FLAG_WRITE_WHITESPACE = 16;    // Must write whitespace first
 
         private final WhitespaceManager whitespaceManager;
 
@@ -237,64 +239,90 @@ public abstract class BitspeakEncoder {
 
         @Override
         public int encodeBlock(byte[] source, int sourceOffset, int sourceLength, char[] destination, int destinationOffset, int destinationLength) {
+            Objects.requireNonNull(source, "source cannot be NULL");
+            return performEncode(source, sourceOffset, sourceLength, destination, destinationOffset, destinationLength);
+        }
+
+        @Override
+        public int finishBlock(char[] destination, int destinationOffset, int destinationLength) {
+            return performEncode(null, 0, 0, destination, destinationOffset, destinationLength);
+        }
+
+        private int performEncode(byte[] source, int sourceOffset, int sourceLength, char[] destination, int destinationOffset, int destinationLength) {
             int read = 0;
             int written = 0;
 
             int currentState = nextState;
             int currentByte = nextByte;
 
-            for (; read < sourceLength && written < destinationLength; ) {
+            for (; written < destinationLength; ) {
+                if ((currentState & STATE_FLAG_WRITE_WHITESPACE) != 0) {
+                    int whitespace = whitespaceManager.writeDelimiter(destination,
+                            destinationOffset + written, destinationLength - written);
+
+                    // More whitespace characters to write
+                    if (whitespace > 0) {
+                        written += whitespace;
+                        continue;
+                    }
+                    // Done writing whitespace
+                    currentState &= ~(STATE_FLAG_WRITE_WHITESPACE | STATE_FLAG_WHITESPACE_CHECKED);
+                }
                 // Read byte, if needed
                 if (currentState == STATE_READ_BYTE) {
+                    if (source == null || read >= sourceLength) {
+                        // Finish block
+                        break;
+                    }
                     currentByte = source[sourceOffset + read++] & 0xFF;
-                    currentState = STATE_WRITE_CONSONANT_START;
+                    currentState = STATE_FLAG_WRITE_CONSONANT;
                 }
+                // Load the current symbol
+                String symbol = (currentState & STATE_FLAG_WRITE_CONSONANT) != 0 ?
+                        CONSONANTS[currentByte >> 4] : VOWELS[currentByte & 0xF];
 
-                if (currentState == STATE_WRITE_CONSONANT_START || currentState == STATE_WRITE_CONSONANT_END) {
-                    String consonant = CONSONANTS[currentByte >> 4];
-                    int index = currentState - STATE_WRITE_CONSONANT_START;
+                // Starting index of the symbol
+                int index = (currentState & STATE_FLAG_WRITTEN_FIRST) != 0 ? 1 : 0;
 
-                    destination[destinationOffset + written++] = consonant.charAt(index);
-                    // Increment state if the next index is still a consonant character, otherwise move to the vowel
-                    currentState = index + 1 < consonant.length() ? currentState + 1 : STATE_WRITE_VOWEL_START;
+                // Check whitespace?
+                if ((currentState & STATE_FLAG_WHITESPACE_CHECKED) == 0) {
+                    int needed = symbol.length() - index;
+                    int permitted = whitespaceManager.beginOutput(symbol.length() - index); // 0, 1 or 2
 
-                } else if (currentState == STATE_WRITE_VOWEL_START || currentState == STATE_WRITE_VOWEL_END) {
-                    String vowel = VOWELS[currentByte & 0xF];
-                    int index = currentState - STATE_WRITE_VOWEL_START;
+                    currentState |= STATE_FLAG_WHITESPACE_CHECKED;
 
-                    destination[destinationOffset + written++] = vowel.charAt(index);
-                    currentState = index + 1 < vowel.length() ? currentState + 1 : STATE_READ_BYTE;
+                    if (permitted == 0) {
+                        currentState |= STATE_FLAG_WRITE_WHITESPACE;
+                        continue;
+                    } else if (permitted != needed) {
+                        // Write the next character, but then write whitespace
+                        currentState |= STATE_FLAG_WRITE_WHITESPACE;
+                    }
+                }
+                // Write next character
+                destination[destinationOffset + written++] = symbol.charAt(index);
+
+                if (index + 1 < symbol.length()) {
+                    // Write the last character in the symbol
+                    currentState |= STATE_FLAG_WRITTEN_FIRST;
+                } else {
+                    // Always clear last char and whitespace checked
+                    currentState &= ~(STATE_FLAG_WRITTEN_FIRST | STATE_FLAG_WHITESPACE_CHECKED);
+
+                    // Next symbol or byte
+                    if ((currentState & STATE_FLAG_WRITE_CONSONANT) != 0) {
+                        // Switch to vowel
+                        currentState = (currentState & ~STATE_FLAG_WRITE_CONSONANT) | STATE_FLAG_WRITE_VOWEL;
+                    } else {
+                        // Read next char (after possibly writing whitespace)
+                        currentState = (currentState & ~STATE_FLAG_WRITE_VOWEL);
+                    }
                 }
             }
             nextByte = currentByte;
             nextState = currentState;
 
             readCount += read;
-            writeCount += written;
-            return written;
-        }
-
-        @Override
-        public int finishBlock(char[] destination, int destinationOffset, int destinationLength) {
-            int written = 0;
-
-            for (; written < destinationLength && nextState != STATE_READ_BYTE; ) {
-                if (nextState == STATE_WRITE_CONSONANT_START || nextState == STATE_WRITE_CONSONANT_END) {
-                    String consonant = CONSONANTS[nextByte >> 4];
-                    int index = nextState - STATE_WRITE_CONSONANT_START;
-
-                    destination[destinationOffset + written++] = consonant.charAt(index);
-                    nextState = index + 1 < consonant.length() ? nextState + 1 : STATE_WRITE_VOWEL_START;
-
-                }
-                if (nextState == STATE_WRITE_VOWEL_START || nextState == STATE_WRITE_VOWEL_END) {
-                    String vowel = VOWELS[nextByte & 0xF];
-                    int index = nextState - STATE_WRITE_VOWEL_START;
-
-                    destination[destinationOffset + written++] = vowel.charAt(index);
-                    nextState = index + 1 < vowel.length() ? nextState + 1 : STATE_READ_BYTE;
-                }
-            }
             writeCount += written;
             return written;
         }
@@ -383,6 +411,9 @@ public abstract class BitspeakEncoder {
                 for (; written < remaining; written++) {
                     destination[destinationOffset + written] = delimiter.charAt(delimiterPosition + written);
                 }
+                if (currentDelimiter == Delimiter.WORD) {
+                    currentLineLength += written;
+                }
                 delimiterPosition += written;
 
                 // See if the delimiter has finished writing
@@ -391,8 +422,9 @@ public abstract class BitspeakEncoder {
                     if (currentDelimiter == Delimiter.LINE) {
                         currentLineLength = 0;
                     }
-                    currentWordLength = 0;
                     currentDelimiter = Delimiter.NONE;
+                    currentWordLength = 0;
+                    delimiterPosition = 0;
                 }
             }
             return written;
