@@ -83,9 +83,9 @@ public class RoundtripTest {
         assertThat(input.length, lessThanOrEqualTo(bitspeak.estimateDecodeSize(encoded.length())));
     }
 
-    //@Test
+    @Test
     public void printPatterns() {
-        String[] hexes = { "01", "0102", "010203", "01020304", "DEADBEEF010203" };
+        String[] hexes = { "AB", "ABAB", "ABABAB", "ABABABAB", "ABABABABAB" };
 
         System.out.println("<table cellpadding=\"4\">");
         System.out.println("  <tr>");
@@ -94,7 +94,9 @@ public class RoundtripTest {
         System.out.println("  </tr>");
 
         for (String hex : hexes) {
-            for (Bitspeak bitspeak : Bitspeak.formats()) {
+            Bitspeak bitspeak = Bitspeak.bs6();
+
+            //for (Bitspeak bitspeak : Bitspeak.formats()) {
                 System.out.println("  <tr>");
 
                 System.out.print("    <td><code>Bitspeak." + bitspeak.name() + "().encode(new byte[] { ");
@@ -106,7 +108,7 @@ public class RoundtripTest {
                 System.out.println("    <td>\"" + output + "\"</td>");
 
                 System.out.println("  </tr>");
-            }
+            //}
         }
         System.out.println("</table>");
     }

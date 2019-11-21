@@ -65,8 +65,15 @@ public class BitspeakEncoderTest {
     }
 
     @Test
+    public void testWordSplitter() {
+        Bitspeak bs8 = Bitspeak.bs8().withConfig(BitspeakConfig.newBuilder().withMaxWordSize(4).build());
+
+        System.out.println(bs8.encode(BaseEncoding.base16().decode("01020304050607080910")));
+    }
+
+    @Test
     public void testEncoder() {
-        BitspeakEncoder encoder = BitspeakEncoder.newEncoder(Bitspeak.Format.BS_6);
+        BitspeakEncoder encoder = BitspeakEncoder.newEncoder(Bitspeak.Format.BS_6, BitspeakConfig.defaultConfig());
         byte[] source = BaseEncoding.base16().lowerCase().decode("f81f9644042f"); // zipuzigikupakare
 
         char[] destination = new char[16];

@@ -13,6 +13,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.util.Objects;
 
 /**
  * A bitspeak encoder. <i>Use {@link Bitspeak} for common encode operations.</i>
@@ -31,12 +32,12 @@ public abstract class BitspeakEncoder {
     protected long readCount;
     protected long writeCount;
 
-    static BitspeakEncoder newEncoder(Bitspeak.Format format) {
+    static BitspeakEncoder newEncoder(Bitspeak.Format format, BitspeakConfig config) {
         switch (format) {
             case BS_6:
-                return new SixBitEncoder();
+                return new SixBitEncoder(config);
             case BS_8:
-                return new EightBitEncoder();
+                return new EightBitEncoder(config);
             default:
                 throw new IllegalArgumentException("Unknown format: " + format);
         }
@@ -127,14 +128,20 @@ public abstract class BitspeakEncoder {
     private static class SixBitEncoder extends BitspeakEncoder {
         private static final char[] CONSONANTS = { 'p', 'b', 't', 'd', 'k', 'g', 'x', 'j', 'f', 'v', 'l', 'r', 'm', 'n', 's', 'z' };
         private static final char[] VOWELS = { 'a', 'u', 'i', 'e' };
+        private final BitspeakConfig config;
 
         private final int CONSONANT_BITS = 4;
         private final int VOWELS_BITS = 2;
 
         private int currentBuffer;
         private int currentBufferLength;
+
         // Consonant first
         private boolean currentConsonant = true;
+
+        public SixBitEncoder(BitspeakConfig config) {
+            this.config = Objects.requireNonNull(config, "config cannot be NULL");
+        }
 
         @Override
         public int encodeBlock(byte[] source, int sourceOffset, int sourceLength, char[] destination, int destinationOffset, int destinationLength) {
@@ -213,44 +220,55 @@ public abstract class BitspeakEncoder {
         private static final String[] CONSONANTS = { "p", "b", "t", "d", "k", "g", "ch", "j", "f", "v", "l", "r", "m", "y", "s", "z" };
         private static final String[] VOWELS = { "a", "e", "i", "o", "u", "an", "en", "in", "un", "on", "ai", "ei", "oi", "ui", "aw", "ow" };
 
-        private char[] buffer = new char[4];
-        private int bufferPosition = 0;
-        private int bufferLength = 0;
+        private static final int STATE_READ_BYTE = 0;                 // Read the next byte to output
+        private static final int STATE_WRITE_CONSONANT_START = 1;     // Write first character of consonant
+        private static final int STATE_WRITE_CONSONANT_END = 2;       // Write second character of consonant (if any)
+        private static final int STATE_WRITE_VOWEL_START = 3;         // Write first character of vowel
+        private static final int STATE_WRITE_VOWEL_END = 4;           // Write first character of vowel (if any)
+
+        private final WhitespaceManager whitespaceManager;
+
+        private int nextState = STATE_READ_BYTE;
+        private int nextByte = 0;
+
+        public EightBitEncoder(BitspeakConfig config) {
+            this.whitespaceManager = new WhitespaceManager(config);
+        }
 
         @Override
         public int encodeBlock(byte[] source, int sourceOffset, int sourceLength, char[] destination, int destinationOffset, int destinationLength) {
             int read = 0;
             int written = 0;
 
-            // Read from overflow first
-            while (bufferLength > bufferPosition) {
-                destination[destinationOffset + written++] = buffer[bufferPosition++];
-            }
-            for (; read < sourceLength && written < destinationLength; read++) {
-                int nextByte = source[sourceOffset + read] & 0xFF;
-                String consonant = CONSONANTS[nextByte >> 4];
-                String vowel = VOWELS[nextByte & 0xF];
+            int currentState = nextState;
+            int currentByte = nextByte;
 
-                // Handle overflow?
-                if (consonant.length() + vowel.length() > destinationLength - written) {
-                    int remaining = destinationLength - written;
+            for (; read < sourceLength && written < destinationLength; ) {
+                // Read byte, if needed
+                if (currentState == STATE_READ_BYTE) {
+                    currentByte = source[sourceOffset + read++] & 0xFF;
+                    currentState = STATE_WRITE_CONSONANT_START;
+                }
 
-                    // Write to overflow buffer
-                    copyTo(consonant, buffer, 0);
-                    copyTo(vowel, buffer, consonant.length());
-                    bufferLength = consonant.length() + vowel.length();
-                    bufferPosition = remaining;
+                if (currentState == STATE_WRITE_CONSONANT_START || currentState == STATE_WRITE_CONSONANT_END) {
+                    String consonant = CONSONANTS[currentByte >> 4];
+                    int index = currentState - STATE_WRITE_CONSONANT_START;
 
-                    // Write as much as possible to the output
-                    for (int i = 0; i < remaining; i++) {
-                        destination[destinationOffset + written] = buffer[i];
-                        written++;
-                    }
-                } else {
-                    written += copyTo(consonant,  destination, destinationOffset + written);
-                    written += copyTo(vowel, destination, destinationOffset + written);
+                    destination[destinationOffset + written++] = consonant.charAt(index);
+                    // Increment state if the next index is still a consonant character, otherwise move to the vowel
+                    currentState = index + 1 < consonant.length() ? currentState + 1 : STATE_WRITE_VOWEL_START;
+
+                } else if (currentState == STATE_WRITE_VOWEL_START || currentState == STATE_WRITE_VOWEL_END) {
+                    String vowel = VOWELS[currentByte & 0xF];
+                    int index = currentState - STATE_WRITE_VOWEL_START;
+
+                    destination[destinationOffset + written++] = vowel.charAt(index);
+                    currentState = index + 1 < vowel.length() ? currentState + 1 : STATE_READ_BYTE;
                 }
             }
+            nextByte = currentByte;
+            nextState = currentState;
+
             readCount += read;
             writeCount += written;
             return written;
@@ -260,19 +278,124 @@ public abstract class BitspeakEncoder {
         public int finishBlock(char[] destination, int destinationOffset, int destinationLength) {
             int written = 0;
 
-            // Read from overflow first
-            while (bufferLength > bufferPosition) {
-                destination[destinationOffset + written++] = buffer[bufferPosition++];
+            for (; written < destinationLength && nextState != STATE_READ_BYTE; ) {
+                if (nextState == STATE_WRITE_CONSONANT_START || nextState == STATE_WRITE_CONSONANT_END) {
+                    String consonant = CONSONANTS[nextByte >> 4];
+                    int index = nextState - STATE_WRITE_CONSONANT_START;
+
+                    destination[destinationOffset + written++] = consonant.charAt(index);
+                    nextState = index + 1 < consonant.length() ? nextState + 1 : STATE_WRITE_VOWEL_START;
+
+                }
+                if (nextState == STATE_WRITE_VOWEL_START || nextState == STATE_WRITE_VOWEL_END) {
+                    String vowel = VOWELS[nextByte & 0xF];
+                    int index = nextState - STATE_WRITE_VOWEL_START;
+
+                    destination[destinationOffset + written++] = vowel.charAt(index);
+                    nextState = index + 1 < vowel.length() ? nextState + 1 : STATE_READ_BYTE;
+                }
             }
             writeCount += written;
             return written;
         }
+    }
 
-        private static int copyTo(String source, char[] destination, int destinationOffset) {
-            for (int i = 0; i < source.length(); i++) {
-                destination[destinationOffset + i] = source.charAt(i);
+    private static class WhitespaceManager {
+        private enum Delimiter {
+            NONE,
+            WORD,
+            LINE
+        }
+
+        private final BitspeakConfig config;
+        private final int maxWordSize;
+        private final int maxLineSize;
+
+        private int currentWordLength;
+        private int currentLineLength;
+
+        private Delimiter currentDelimiter = Delimiter.NONE;
+        private int delimiterPosition;
+
+        public WhitespaceManager(BitspeakConfig config) {
+            this.config = Objects.requireNonNull(config, "config cannot be NULL");
+            this.maxWordSize = config.getMaxWordSize();
+            this.maxLineSize = config.getMaxLineSize();
+        }
+
+        public String getCurrentDelimiter() {
+            return currentDelimiter == Delimiter.LINE ? config.getLineDelimiter() :
+                    (currentDelimiter == Delimiter.WORD ? config.getWordDelimiter() : "");
+        }
+
+        /**
+         * Attempt to write the given number of characters to the output.
+         * @param length the number of characters to write.
+         * @return The amount of characters permitted, or 0 if a delimiter must be written first.
+         */
+        public int beginOutput(int length) {
+            Delimiter nextDelimiter = currentDelimiter;
+
+            if (nextDelimiter != Delimiter.NONE) {
+                // Writing a delimiter
+                return 0;
             }
-            return source.length();
+            int result = length;
+
+            if (currentWordLength + length > maxWordSize && maxWordSize > 0) {
+                if (currentWordLength == 0) {
+                    // Current word has just started - we'll have to split it
+                    result = maxWordSize - length;
+                } else {
+                    result = 0;
+                    nextDelimiter = Delimiter.WORD;
+                }
+            }
+            if (currentLineLength + result > maxLineSize && maxLineSize > 0) {
+                if (currentLineLength == 0) {
+                    // Current line has also just started - split that too
+                    result = Math.min(result, maxLineSize - length);
+                } else {
+                    result = 0;
+                    nextDelimiter = Delimiter.LINE;
+                }
+            }
+            currentWordLength += result;
+            currentLineLength += result;
+            currentDelimiter = nextDelimiter;
+            return result;
+        }
+
+        /**
+         * Begin to write the current delimiter, if any, to the output.
+         * @param destination the destination buffer.
+         * @param destinationOffset the starting position.
+         * @param destinationLength the maximum number of characters to write.
+         * @return The number of characters written, or 0.
+         */
+        public int writeDelimiter(char[] destination, int destinationOffset, int destinationLength) {
+            int written = 0;
+
+            if (currentDelimiter != Delimiter.NONE) {
+                String delimiter = currentDelimiter == Delimiter.WORD ? config.getWordDelimiter() : config.getLineDelimiter();
+                int remaining = Math.min(destinationLength, delimiter.length() - delimiterPosition);
+
+                for (; written < remaining; written++) {
+                    destination[destinationOffset + written] = delimiter.charAt(delimiterPosition + written);
+                }
+                delimiterPosition += written;
+
+                // See if the delimiter has finished writing
+                if (delimiterPosition >= delimiter.length()) {
+                    // Also reset line length
+                    if (currentDelimiter == Delimiter.LINE) {
+                        currentLineLength = 0;
+                    }
+                    currentWordLength = 0;
+                    currentDelimiter = Delimiter.NONE;
+                }
+            }
+            return written;
         }
     }
 }

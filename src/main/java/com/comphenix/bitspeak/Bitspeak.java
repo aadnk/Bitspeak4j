@@ -14,6 +14,7 @@ import java.io.Reader;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 
 /**
  * Represents a bitspeak format (BS-6 or BS-8) for encoding a stream of bytes to pronounceable text, and back again.
@@ -82,14 +83,16 @@ public class Bitspeak {
         BS_8
     }
 
-    private static final Bitspeak BITSPEAK_BS_6 = new Bitspeak(Format.BS_6);
-    private static final Bitspeak BITSPEAK_BS_8 = new Bitspeak(Format.BS_8);
+    private static final Bitspeak BITSPEAK_BS_6 = new Bitspeak(Format.BS_6, BitspeakConfig.defaultConfig());
+    private static final Bitspeak BITSPEAK_BS_8 = new Bitspeak(Format.BS_8, BitspeakConfig.defaultConfig());
     private static final Collection<Bitspeak> FORMATS = Collections.unmodifiableList(Arrays.asList(BITSPEAK_BS_6, BITSPEAK_BS_8));
 
     private final Bitspeak.Format format;
+    private final BitspeakConfig config;
 
-    private Bitspeak(Format format) {
-        this.format = format;
+    private Bitspeak(Format format, BitspeakConfig config) {
+        this.format = Objects.requireNonNull(format, "format cannot be NULL");
+        this.config = Objects.requireNonNull(config, "config cannot be NULL");;
     }
 
     /**
@@ -311,6 +314,15 @@ public class Bitspeak {
     }
 
     /**
+     * Retrieve a bitspeak format with the given configuration.
+     * @param configuration the configuration, cannot be NULL.
+     * @return The bitspeak format instance with this configuration.
+     */
+    public Bitspeak withConfig(BitspeakConfig configuration) {
+        return new Bitspeak(format, configuration);
+    }
+
+    /**
      * Convert the given bitspeak-encoded string back to the original byte array.
      * @param bitspeak the bitspeak string.
      * @return The original byte array.
@@ -395,7 +407,7 @@ public class Bitspeak {
      * @return The corresponding input stream.
      */
     public InputStream newDecodeStream(Reader reader, int bufferSize) {
-        return BitspeakDecoder.newDecoder(format).wrap(reader, 2 * bufferSize, bufferSize);
+        return newDecoder().wrap(reader, 2 * bufferSize, bufferSize);
     }
 
     /**
@@ -406,7 +418,7 @@ public class Bitspeak {
      * @return The corresponding input stream.
      */
     public InputStream newDecodeStream(Reader reader, int byteBufferSize, int charBufferSize) {
-        return BitspeakDecoder.newDecoder(format).wrap(reader, byteBufferSize, charBufferSize);
+        return newDecoder().wrap(reader, byteBufferSize, charBufferSize);
     }
 
     /**
@@ -464,7 +476,7 @@ public class Bitspeak {
      * @return A new bitspeak encoder.
      */
     public BitspeakEncoder newEncoder() {
-        return BitspeakEncoder.newEncoder(format);
+        return BitspeakEncoder.newEncoder(format, config);
     }
 
     /**
@@ -483,7 +495,7 @@ public class Bitspeak {
      * @return A readable stream of bitspeak characters.
      */
     public Reader newEncodeStream(InputStream input, int bufferSize) {
-        return BitspeakEncoder.newEncoder(format).wrap(input, 2 * bufferSize, bufferSize);
+        return newEncoder().wrap(input, 2 * bufferSize, bufferSize);
     }
 
     /**
@@ -494,7 +506,7 @@ public class Bitspeak {
      * @return A readable stream of bitspeak characters.
      */
     public Reader newEncodeStream(InputStream input, int byteBufferSize, int charBufferSize) {
-        return BitspeakEncoder.newEncoder(format).wrap(input, byteBufferSize, charBufferSize);
+        return newEncoder().wrap(input, byteBufferSize, charBufferSize);
     }
 
     /**
