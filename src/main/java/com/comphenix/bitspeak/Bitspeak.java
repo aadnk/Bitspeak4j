@@ -361,7 +361,7 @@ public class Bitspeak {
     }
 
     /**
-     * Retrieve the number of bytes needed to store the given character array with this format of bitspeak.
+     * Estimate the number of bytes needed to store the given character array with this format of bitspeak.
      * @param characterCount the character count.
      * @return The number of bytes.
      */
@@ -465,7 +465,7 @@ public class Bitspeak {
     }
 
     /**
-     * Retrieve the number of characters needed to store the given bytes with the current bitspeak format.
+     * Estimate the number of characters needed to store the given bytes with the current bitspeak format.
      * @param byteCount the number of bytes.
      * @return The maximum number of characters needed.
      */
