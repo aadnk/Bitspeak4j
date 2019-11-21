@@ -447,7 +447,7 @@ public class Bitspeak {
         while (encoder.getReadCount() < length) {
             int readCount = (int) encoder.getReadCount();
 
-            int written = encoder.encodeBlock(data, readCount, length - readCount,
+            int written = encoder.encodeBlock(data, offset + readCount, length - readCount,
                     buffer, 0, buffer.length);
             builder.append(buffer, 0, written);
         }

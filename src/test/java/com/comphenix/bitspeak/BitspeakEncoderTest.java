@@ -65,6 +65,14 @@ public class BitspeakEncoderTest {
     }
 
     @Test
+    public void testEncode() {
+        byte[] data = new byte[] { 1, 2, 3};
+        assertEquals("pakatape", Bitspeak.bs6().encode(data, 0, 3));
+        assertEquals("pafad", Bitspeak.bs6().encode(data, 1, 2));
+        assertEquals("pam", Bitspeak.bs6().encode(data, 2, 1));
+    }
+
+    @Test
     public void testWordSplitter() {
         Bitspeak bs6 = Bitspeak.bs6().withConfig(BitspeakConfig.newBuilder().withMaxLineSize(8).withMaxWordSize(5).build());
 
