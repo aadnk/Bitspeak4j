@@ -100,7 +100,9 @@ public class RoundtripTest {
             for (Bitspeak bitspeak : Bitspeak.formats()) {
                 System.out.println("  <tr>");
 
-                System.out.print("    <td><code>Bitspeak." + bitspeak.name() + "().encode(new byte[] { ");
+                String methodName = bitspeak.name().toLowerCase().replace("-", "");
+
+                System.out.print("    <td><code>Bitspeak." + methodName + "().encode(new byte[] { ");
                 System.out.print(Splitter.fixedLength(2).splitToList(hex).stream().map(x -> "" +
                         (byte)Integer.parseInt(x, 16)).collect(Collectors.joining(", ")));
                 System.out.println(" })</code></td>");

@@ -37,43 +37,43 @@ import java.util.Objects;
  *     <th>Output</th>
  *   </tr>
  *   <tr>
- *     <td><code>Bitspeak.BS-6().encode(new byte[] { 1 })</code></td>
+ *     <td><code>Bitspeak.bs6().encode(new byte[] { 1 })</code></td>
  *     <td>"pak"</td>
  *   </tr>
  *   <tr>
- *     <td><code>Bitspeak.BS-8().encode(new byte[] { 1 })</code></td>
+ *     <td><code>Bitspeak.bs8().encode(new byte[] { 1 })</code></td>
  *     <td>"pe"</td>
  *   </tr>
  *   <tr>
- *     <td><code>Bitspeak.BS-6().encode(new byte[] { 1, 2 })</code></td>
+ *     <td><code>Bitspeak.bs6().encode(new byte[] { 1, 2 })</code></td>
  *     <td>"pakat"</td>
  *   </tr>
  *   <tr>
- *     <td><code>Bitspeak.BS-8().encode(new byte[] { 1, 2 })</code></td>
+ *     <td><code>Bitspeak.bs8().encode(new byte[] { 1, 2 })</code></td>
  *     <td>"pepi"</td>
  *   </tr>
  *   <tr>
- *     <td><code>Bitspeak.BS-6().encode(new byte[] { 1, 2, 3 })</code></td>
+ *     <td><code>Bitspeak.bs6().encode(new byte[] { 1, 2, 3 })</code></td>
  *     <td>"pakatape"</td>
  *   </tr>
  *   <tr>
- *     <td><code>Bitspeak.BS-8().encode(new byte[] { 1, 2, 3 })</code></td>
+ *     <td><code>Bitspeak.bs8().encode(new byte[] { 1, 2, 3 })</code></td>
  *     <td>"pepipo"</td>
  *   </tr>
  *   <tr>
- *     <td><code>Bitspeak.BS-6().encode(new byte[] { 1, 2, 3, 4 })</code></td>
+ *     <td><code>Bitspeak.bs6().encode(new byte[] { 1, 2, 3, 4 })</code></td>
  *     <td>"pakatape-pup"</td>
  *   </tr>
  *   <tr>
- *     <td><code>Bitspeak.BS-8().encode(new byte[] { 1, 2, 3, 4 })</code></td>
+ *     <td><code>Bitspeak.bs8().encode(new byte[] { 1, 2, 3, 4 })</code></td>
  *     <td>"pepipopu"</td>
  *   </tr>
  *   <tr>
- *     <td><code>Bitspeak.BS-6().encode(new byte[] { -34, -83, -66, -17, 1, 2, 3 })</code></td>
+ *     <td><code>Bitspeak.bs6().encode(new byte[] { -34, -83, -66, -17, 1, 2, 3 })</code></td>
  *     <td>"nelinizi-semabapi-pam"</td>
  *   </tr>
  *   <tr>
- *     <td><code>Bitspeak.BS-8().encode(new byte[] { -34, -83, -66, -17, 1, 2, 3 })</code></td>
+ *     <td><code>Bitspeak.bs8().encode(new byte[] { -34, -83, -66, -17, 1, 2, 3 })</code></td>
  *     <td>"yawluir-awsowpep-ipo"</td>
  *   </tr>
  * </table>
