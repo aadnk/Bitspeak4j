@@ -24,7 +24,12 @@ import java.util.Objects;
  * {@link BitspeakDecoder#decodeBlock(char[], int, int, byte[], int, int)} repeatedly with a range
  * of input characters and a range of output bytes to a byte array. The method returns the number of written
  * bytes in the byte array, use {@link #getReadCount()} to determine the number of read characters (total accumulated) from the character
- * array. Finally, call {@link BitspeakDecoder#finishBlock(byte[], int, int)} to indicate that the stream of characters have ended (EOF).
+ * array.
+ * </p>
+ * <p>
+ * Finally, call {@link BitspeakDecoder#finishBlock(byte[], int, int)} to indicate that the stream of characters have ended (EOF). Repeat until
+ * the <i>finishBlock</i> method returns zero (0).
+ * </p>
  * <p>
  * WARNING: This class is not thread safe.
  * </p>
@@ -154,7 +159,7 @@ public abstract class BitspeakDecoder {
      * @param destination       the destination byte array.
      * @param destinationOffset the starting position of the destination array.
      * @param destinationLength the maximum number of bytes to write to the destination array.
-     * @return Number of decoded bytes.
+     * @return Number of decoded bytes, or 0 if the encoder is finished.
      */
     public abstract int finishBlock(byte[] destination, int destinationOffset, int destinationLength);
 
