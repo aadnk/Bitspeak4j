@@ -74,9 +74,13 @@ public class BitspeakEncoderTest {
 
     @Test
     public void testWordSplitter() {
-        Bitspeak bs6 = Bitspeak.bs6().withConfig(BitspeakConfig.newBuilder().withMaxLineSize(8).withMaxWordSize(5).build());
+        BitspeakConfig config = BitspeakConfig.newBuilder().withMaxLineSize(36).withMaxWordSize(6).build();
+        Bitspeak bs6 = Bitspeak.bs6().withConfig(config);
+        Bitspeak bs8 = Bitspeak.bs8().withConfig(config);
 
-        System.out.println(bs6.encode(BaseEncoding.base16().decode("0102030405060708091001020304050607080910")));
+        byte[] data = BaseEncoding.base16().decode("0102030405060708091001020304050607080910");
+        assertEquals("pakata-pepupa-gabipu-mafatu-bapaba-p" + System.lineSeparator() + "ipamak-abupuf-ajatap-ikup", bs6.encode(data));
+        assertEquals("pepipo-pupanp-enpinp-unponb-apepip-o" + System.lineSeparator() + "pupanp-enpinp-unponb-a", bs8.encode(data));
     }
 
     @Test
