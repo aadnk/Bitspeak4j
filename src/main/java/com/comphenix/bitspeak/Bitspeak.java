@@ -113,8 +113,10 @@ public class Bitspeak {
      * until the last chunk of bits.
      * </p>
      * <p>If the bit stream is not evenly divisible by 6, it might end with less bits than required by the
-     * current lookup table (for instance, "11" when the consonant lookup table is active). In that case, the bit stream
-     * is padded with zeroes at the end (making the end "1100" in the previous example).</p>
+     * current lookup table- for instance, the final two bits might be "11", which cannot be represented in the
+     * consonant table. In that case, the bit stream is padded with zeroes to the right, until the last bits
+     * have the length required by the lookup table. In the previous example, the last two bits "11" would be turned into "1100",
+     * as the table requires 4 bits.</p>
      * <h2>Consonants lookup table:</h2>
      * <table>
      *   <tr>

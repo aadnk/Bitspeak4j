@@ -7,9 +7,9 @@ import java.util.Objects;
 /**
  * Represents a bitspeak format configuration for line and word delimiters.
  * <p>
- * This enables customizing the maximum number of characters per word (by default, 8) and per line (default is 160),
- * before the encoder will output a delimiter, along with the specific delimiters between each word (default "-")
- * and line (line terminator).
+ * This enables customizing the maximum number of characters per word (default is 8) and per line (default is 160),
+ * before the encoder will output a delimiter, along with the specific delimiters between each word (default is "-")
+ * and line (default is the current line terminator).
  * </p>
  * It is also possible to specify the characters that are considered skippable whitepace (by default, whitespace, "-" and "_").
  */
