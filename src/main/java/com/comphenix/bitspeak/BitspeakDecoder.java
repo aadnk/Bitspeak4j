@@ -133,10 +133,31 @@ public abstract class BitspeakDecoder {
      * @return Number of decoded bytes.
      */
     public int decodeFinal(char[] source, byte[] destination) {
-        int written = decodeBlock(source, 0, source.length, destination, 0, destination.length);
+        long startCount = readCount;
+        int written = 0;
 
+        // Consume until enough characters have been written to the output
+        while (true) {
+            int sourceOffset = (int) (readCount - startCount);
+            int decoded = decodeBlock(
+                    source, sourceOffset, source.length - sourceOffset,
+                    destination, written, destination.length - written);
+
+            // No more written characters
+            if (decoded <= 0) {
+                break;
+            }
+            written += decoded;
+        }
         // Finalize block
-        written += finishBlock(destination, written, destination.length - written);
+        while (true) {
+            int decoded = finishBlock(destination, written, destination.length - written);
+
+            if (decoded <= 0) {
+                break;
+            }
+            written += decoded;
+        }
         return written;
     }
 
