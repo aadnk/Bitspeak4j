@@ -1,4 +1,4 @@
-# Bitspeak
+# Bitspeak4j
 A Java-library for encoding/decoding byte streams into pronounceable text, based on a 
 Javascript implementation and specification in [MaiaVictor/Bitspeak](https://github.com/MaiaVictor/Bitspeak).
 
