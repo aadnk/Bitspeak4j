@@ -160,7 +160,7 @@ public class BitspeakEncoderTest {
 
     @Test
     public void testLargeBs8Encode() {
-        for (int lengths : new int[] { 514 * 1024 * 1024 }) {
+        for (int lengths : new int[] { 5 * 1024, 17 * 1024, 171 * 1024 }) {
             byte[] data = new byte[lengths];
             long symbols = data.length; // pa
 
