@@ -142,4 +142,62 @@ public class BitspeakEncoderTest {
         }
         return result;
     }
+
+    @Test
+    public void testLargeBs6Encode() {
+        for (int lengths : new int[] { 5 * 1024, 17 * 1024, 171 * 1024 }) {
+            byte[] data = new byte[lengths];
+            long bits = data.length * 8;
+            long symbols = bits / 6;
+
+            Bitspeak bs6 = Bitspeak.bs6().withConfig(BitspeakConfig.unlimitedWordSize());
+            String encoded = bs6.encode(data);
+            String expected = repeatString("pa", (int)symbols, (bits % 6) == 0 ? "" : "p");
+
+            assertEquals(expected, encoded, "Encoded string of length " + lengths + " was different");
+        }
+    }
+
+    @Test
+    public void testLargeBs8Encode() {
+        for (int lengths : new int[] { 514 * 1024 * 1024 }) {
+            byte[] data = new byte[lengths];
+            long symbols = data.length; // pa
+
+            Bitspeak bs8 = Bitspeak.bs8().withConfig(BitspeakConfig.unlimitedWordSize());
+            String encoded = bs8.encode(data);
+            String expected = repeatString("pa", symbols, "");
+
+            assertEquals(expected, encoded, "Encoded string of length " + lengths + " was different");
+        }
+    }
+
+    private String repeatString(String element, long count, String suffix) {
+        long newLength = element.length() * count + suffix.length();
+
+        if (newLength > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException("Cannot represent string " + element + " repeated " + count +
+                    " times (plus suffix " + suffix + "), as it's larger than INT_MAX");
+        }
+        StringBuilder builder = new StringBuilder((int) newLength);
+
+        for (long i = 0; i < count; i++) {
+            builder.append(element);
+        }
+        builder.append(suffix);
+        return builder.toString();
+    }
+
+    @Test
+    public void testEncoderEstimates() {
+        // 513 MB of bytes could fit in a string
+        int size = Bitspeak.bs8().estimateEncodeSize(768 * 1024 * 1024);
+        assertTrue(size > Integer.MAX_VALUE / 2);
+
+        assertEquals(Integer.MAX_VALUE - 64, Bitspeak.bs6().estimateEncodeSize(Integer.MAX_VALUE - 1));
+        assertEquals(Integer.MAX_VALUE - 64, Bitspeak.bs8().estimateEncodeSize(Integer.MAX_VALUE - 1));
+
+        assertTrue( Bitspeak.bs6().estimateDecodeSize(Integer.MAX_VALUE - 64) > 1000);
+        assertTrue(Bitspeak.bs8().estimateDecodeSize(Integer.MAX_VALUE - 64) > 1000);
+    }
 }

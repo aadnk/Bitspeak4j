@@ -89,6 +89,9 @@ public class Bitspeak {
     private static final Bitspeak BITSPEAK_BS_8 = new Bitspeak(Format.BS_8, BitspeakConfig.defaultConfig());
     private static final Collection<Bitspeak> FORMATS = Collections.unmodifiableList(Arrays.asList(BITSPEAK_BS_6, BITSPEAK_BS_8));
 
+    private static final int MAX_ENCODE_SIZE = Integer.MAX_VALUE - 64;
+    private static final int MAX_DECODE_SIZE = Integer.MAX_VALUE - 1;
+
     private final Bitspeak.Format format;
     private final BitspeakConfig config;
 
@@ -377,11 +380,11 @@ public class Bitspeak {
             case BS_6:
                 // Compute number of bits needed to store the number
                 long bits = (characterCount / 2) * (long)6 + ((characterCount & 1) == 1 ? 4 : 0);
-                return (int) Math.ceil(bits / 8.0);
+                return (int) Math.min(Math.ceil(bits / 8.0), MAX_DECODE_SIZE);
 
             case BS_8:
                 // At least half (for instance, papapa)
-                return (int) Math.ceil(characterCount / 2.0);
+                return (int) Math.min(Math.ceil(characterCount / 2.0), MAX_DECODE_SIZE);
             default:
                 throw new IllegalArgumentException("Unknown format: " + this);
         }
@@ -471,7 +474,7 @@ public class Bitspeak {
     /**
      * Estimate the number of characters needed to store the given bytes with the current bitspeak format.
      * @param byteCount the number of bytes.
-     * @return The maximum number of characters needed.
+     * @return The maximum number of characters needed, up to {@link Integer#MAX_VALUE} - 64.
      */
     public int estimateEncodeSize(int byteCount) {
         if (byteCount < 0) {
@@ -480,28 +483,28 @@ public class Bitspeak {
         switch (format) {
             case BS_6:
                 long bits = (long)byteCount * 8;
-                int characters = (int) (2 * (bits / 6) + (bits % 6 == 0 ? 0 : 1));
+                long characters = 2 * (bits / 6) + (bits % 6 == 0 ? 0 : 1);
 
                 return adjustDelimiterCount(characters);
 
             case BS_8:
                 // could be as much as 4 characters per byte (0110 0101 -> shan)
-                return adjustDelimiterCount(4 * byteCount);
+                return adjustDelimiterCount(4L * byteCount);
             default:
                 throw new IllegalArgumentException("Unknown format: " + this);
         }
     }
 
-    private int adjustDelimiterCount(int characters) {
+    private int adjustDelimiterCount(long characters) {
         if (config.getMaxWordSize() > 0 || config.getMaxLineSize() > 0) {
-            int words = config.getMaxWordSize() > 0 ? (int) Math.ceil(characters / (double) config.getMaxWordSize()) : 0;
+            long words = config.getMaxWordSize() > 0 ? (long) Math.ceil(characters / (double) config.getMaxWordSize()) : 0;
 
             characters += config.getWordDelimiter().length() * words;
-            int lines = config.getMaxLineSize() > 0 ? (int) Math.ceil(characters / (double) config.getMaxLineSize()) : 0;
+            long lines = config.getMaxLineSize() > 0 ? (long) Math.ceil(characters / (double) config.getMaxLineSize()) : 0;
 
             characters += config.getLineDelimiter().length() * lines;
         }
-        return characters;
+        return (int) Math.min(characters, MAX_ENCODE_SIZE);
     }
 
     /**
