@@ -204,7 +204,7 @@ public abstract class BitspeakDecoder {
             CharPredicate skipChar = config.getSkipCharPredicate();
 
             for (read = 0; read < sourceLength && written < destinationLength; read++) {
-                char character = source[read];
+                char character = source[read + sourceOffset];
 
                 // Completely skip whitespace (do not save as prev char)
                 if (skipChar.test(character)) {
@@ -282,10 +282,17 @@ public abstract class BitspeakDecoder {
                     }
                 }
                 // Write if possible
-                written += bitWriter.flush(destination,
+                int flushed = bitWriter.flush(destination,
                         destinationOffset + written, destinationLength - written);
+
                 // Flip consonant state
                 consonant = !consonant;
+                written += flushed;
+
+                // Buffer is full
+                if (flushed == 0 && bitWriter.getBufferLength() >= 8) {
+                    break;
+                }
             }
             // Save current state
             nextConsonant = consonant;
@@ -339,7 +346,7 @@ public abstract class BitspeakDecoder {
             CharPredicate skipChar = config.getSkipCharPredicate();
 
             for (read = 0; read < sourceLength && written < destinationLength; read++) {
-                char character = source[read];
+                char character = source[read + sourceOffset];
 
                 // Completely skip whitespace (do not save as prev char)
                 if (skipChar.test(character)) {
@@ -497,10 +504,16 @@ public abstract class BitspeakDecoder {
                     state = STATE_BEGIN_CONSONANT;
                 }
                 // Write if possible
-                written += bitWriter.flush(destination,
+                int flushed = bitWriter.flush(destination,
                         destinationOffset + written, destinationLength - written);
 
                 prev = character;
+                written += flushed;
+
+                // Buffer is full
+                if (flushed == 0 && bitWriter.getBufferLength() >= 8) {
+                    break;
+                }
             }
             // Save current state
             nextState = state;
@@ -583,9 +596,6 @@ public abstract class BitspeakDecoder {
                 bufferLength -= 8;
 
                 if (++written >= destinationLength) {
-                    if (bufferLength > 0) {
-                        throw new IllegalArgumentException("misalignment error (buffer length: " + bufferLength + ")");
-                    }
                     break;
                 }
             }

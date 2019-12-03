@@ -66,15 +66,21 @@ public class BitspeakDecoderTest {
 
     @Test
     public void testEstimateError() {
+        decodeUsingWrongEstimate(0);
+        decodeUsingWrongEstimate(1);
+    }
+
+    private void decodeUsingWrongEstimate(int estimateLength) {
         // Test BS-6 with a broken decode estimate
         Bitspeak bitspeak = new Bitspeak(Bitspeak.Format.BS_6, BitspeakConfig.defaultConfig()) {
             @Override
             public int estimateDecodeSize(int characterCount) {
-                return 0;
+                return estimateLength;
             }
         };
         byte[] result = bitspeak.decode("zipuzigi");
-
         assertArrayEquals(BaseEncoding.base16().decode("F81F96"), result);
     }
+
+
 }
