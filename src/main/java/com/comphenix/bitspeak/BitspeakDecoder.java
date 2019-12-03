@@ -543,6 +543,7 @@ public abstract class BitspeakDecoder {
             if (bitWriter.getBufferLength() > 0) {
                 throw new IllegalStateException("Misalignment error: " + bitWriter.getBufferLength() + " bits offset.");
             }
+            writeCount += written;
             return written;
         }
     }

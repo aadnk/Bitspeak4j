@@ -200,4 +200,19 @@ public class BitspeakEncoderTest {
         assertTrue( Bitspeak.bs6().estimateDecodeSize(Integer.MAX_VALUE - 64) > 1000);
         assertTrue(Bitspeak.bs8().estimateDecodeSize(Integer.MAX_VALUE - 64) > 1000);
     }
+
+    @Test
+    public void testEstimateError() {
+        // Test BS-6 with a broken encode estimate
+        Bitspeak bitspeak = new Bitspeak(Bitspeak.Format.BS_6, BitspeakConfig.defaultConfig()) {
+            @Override
+            public int estimateEncodeSize(int byteCount) {
+                // Legal, but totally wrong estimate
+                return 0;
+            }
+        };
+        String result = bitspeak.encode(BaseEncoding.base16().decode("17559E"));
+
+        assertEquals("bunugiji", result);
+    }
 }

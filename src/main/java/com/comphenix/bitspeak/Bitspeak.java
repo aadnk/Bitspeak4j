@@ -95,7 +95,7 @@ public class Bitspeak {
     private final Bitspeak.Format format;
     private final BitspeakConfig config;
 
-    private Bitspeak(Format format, BitspeakConfig config) {
+    Bitspeak(Format format, BitspeakConfig config) {
         this.format = Objects.requireNonNull(format, "format cannot be NULL");
         this.config = Objects.requireNonNull(config, "config cannot be NULL");;
     }
@@ -357,20 +357,48 @@ public class Bitspeak {
     public byte[] decode(char[] bitspeak, int offset, int length) {
         // Calculate buffer size
         byte[] buffer = new byte[estimateDecodeSize(length)];
-        int written = 0;
 
         BitspeakDecoder decoder = newDecoder();
-        written += decoder.decodeBlock(bitspeak, offset, length, buffer, 0, buffer.length);
-        written += decoder.finishBlock(buffer, written, buffer.length - written);
+        boolean reading = true;
+
+        while (true) {
+            int readCount = (int) decoder.getReadCount();
+            int writeCount = (int) decoder.getWriteCount();
+
+            int written;
+
+            if (readCount < length && reading) {
+                // Decode characters
+                written = decoder.decodeBlock(bitspeak, offset + readCount, length - readCount,
+                        buffer, writeCount, buffer.length - writeCount);
+            } else {
+                // Finish decoding
+                written = decoder.finishBlock(buffer, writeCount, buffer.length - writeCount);
+                reading = false;
+            }
+
+            if (written <= 0) {
+                // Insufficient buffer?
+                if (writeCount == buffer.length) {
+                    buffer = Arrays.copyOf(buffer, (int) Math.max(buffer.length * 2L, 16));
+                } else if (readCount < length && reading) {
+                    reading = false;
+                } else {
+                    // Done writing
+                    break;
+                }
+            }
+        }
+        int writeCount = (int) decoder.getWriteCount();
 
         // Create final array
-        return written < buffer.length ? Arrays.copyOf(buffer, written) : buffer;
+        return writeCount < buffer.length ? Arrays.copyOf(buffer, writeCount) : buffer;
     }
 
     /**
      * Estimate the number of bytes needed to store the given character array with this format of bitspeak.
      * @param characterCount the character count.
-     * @return The number of bytes.
+     * @return The number of bytes, cannot be negative.
      */
     public int estimateDecodeSize(int characterCount) {
         if (characterCount < 0) {
