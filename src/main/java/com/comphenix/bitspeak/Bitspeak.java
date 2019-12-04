@@ -30,7 +30,7 @@ import java.util.Objects;
  * every 160 characters written to the output. This can be configured using {@link #withConfig(BitspeakConfig)}.
  * <br>
  * <h2>Examples</h2>
- * <table style="border-spacing: 4px"
+ * <table style="border-spacing: 4px">
  *   <tr>
  *     <th>Example</th>
  *     <th>Output</th>

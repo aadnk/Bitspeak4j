@@ -74,7 +74,7 @@
                     <doctitle>Bitspeak JavaDocs</doctitle>
                     <windowtitle>Bitspeak JavaDocs</windowtitle>
                     <bottom>Copyright &#169; 2019&#x2013;{currentYear}
-                                Comphenix. Licensed under the GNU GPL v2.</bottom>
+                                Comphenix. Licensed under the GNU LGPL v3.</bottom>
                     <source>1.8</source>
 
                     <!-- Hard to to satisfy linter - complains about no "summary" on tables, but then does not
