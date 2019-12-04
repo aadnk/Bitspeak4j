@@ -15,6 +15,7 @@ import org.junit.Test;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class BitspeakDecoderTest {
     @Test
@@ -82,5 +83,26 @@ public class BitspeakDecoderTest {
         assertArrayEquals(BaseEncoding.base16().decode("F81F96"), result);
     }
 
+    @Test
+    public void testDecodeBufferSmall() {
+        BitspeakDecoder decoder = Bitspeak.bs8().newDecoder();
 
+        char[] input = "zunbowvenla".toCharArray();
+        byte[] buffer = new byte[3]; // Too small
+
+        int written = decoder.decodeBlock(input, 0, input.length, buffer, 0, buffer.length);
+        assertEquals(3, written);
+
+        int readCount = (int) decoder.getReadCount();
+        byte[] temp = new byte[16];
+        // Nothing more to write
+        assertEquals(0, decoder.decodeBlock(input, readCount, input.length - readCount, temp, 0, temp.length));
+
+        // 0 = Buffer too small
+        assertEquals(0, decoder.finishBlock(buffer, written, buffer.length - written));
+
+        // Allocate more space
+        buffer = Arrays.copyOf(buffer, buffer.length * 2);
+        assertEquals(1, decoder.finishBlock(buffer, written, buffer.length - written));
+    }
 }

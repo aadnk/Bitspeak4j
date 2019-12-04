@@ -102,7 +102,11 @@ public class BitspeakEncoderTest {
                 destination, destinationPos, destination.length);
 
         // Must always end with finish block
-        destinationPos += encoder.finishBlock(destination, destinationPos, destination.length - destinationPos);
+        int written = encoder.finishBlock(destination, destinationPos, destination.length - destinationPos);
+
+        if (written > 0) {
+            destinationPos += written;
+        }
         assertEquals("zipuzigi-kupakare", new String(destination, 0, destinationPos));
     }
 

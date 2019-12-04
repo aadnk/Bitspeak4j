@@ -28,7 +28,7 @@ import java.util.Objects;
  * </p>
  * <p>
  * Finally, call {@link BitspeakDecoder#finishBlock(byte[], int, int)} to indicate that the stream of characters have ended (EOF). Repeat until
- * the <i>finishBlock</i> method returns zero (0).
+ * the <i>finishBlock</i> method returns negative one (-1).
  * </p>
  * <p>
  * WARNING: This class is not thread safe.
@@ -88,9 +88,8 @@ public abstract class BitspeakDecoder {
                     bufferPosition += getReadCount() - currentRead;
                     return written;
                 } else {
-                    // Finalize block
-                    int written = finishBlock(b, off, len);
-                    return written > 0 ? written : -1;
+                    // Finalize block (will return -1 at the end)
+                    return finishBlock(b, off, len);
                 }
             }
 
@@ -153,7 +152,9 @@ public abstract class BitspeakDecoder {
         while (true) {
             int decoded = finishBlock(destination, written, destination.length - written);
 
-            if (decoded <= 0) {
+            if (decoded == 0) {
+                throw new IllegalArgumentException("Insufficient buffer length: " + destination.length);
+            } else if (decoded < 0) {
                 break;
             }
             written += decoded;
@@ -170,7 +171,7 @@ public abstract class BitspeakDecoder {
      * @param destination       the destination byte array.
      * @param destinationOffset the starting position of the destination array.
      * @param destinationLength the maximum number of bytes to write to the destination array.
-     * @return Number of decoded bytes.
+     * @return Number of decoded bytes, no less than zero.
      */
     public abstract int decodeBlock(char[] source, int sourceOffset, int sourceLength, byte[] destination, int destinationOffset, int destinationLength);
 
@@ -180,7 +181,7 @@ public abstract class BitspeakDecoder {
      * @param destination       the destination byte array.
      * @param destinationOffset the starting position of the destination array.
      * @param destinationLength the maximum number of bytes to write to the destination array.
-     * @return Number of decoded bytes, or 0 if the encoder is finished.
+     * @return Number of decoded bytes, zero if we reached the end of the buffer, or -1 if the decoder is finished.
      */
     public abstract int finishBlock(byte[] destination, int destinationOffset, int destinationLength);
 
@@ -304,16 +305,21 @@ public abstract class BitspeakDecoder {
         @Override
         public int finishBlock(byte[] destination, int destinationOffset, int destinationLength) {
             int written = bitWriter.flush(destination, destinationOffset, destinationLength);
+            int bitsRemaining = bitWriter.getBufferLength();
 
-            if (bitWriter.getBufferLength() > 0) {
+            if (bitsRemaining > 0 && bitsRemaining < 8) {
                 // Discard bits if they are zero (due to padding)
                 if (bitWriter.getBuffer() != 0) {
-                    throw new IllegalStateException("Misalignment error: " + bitWriter.getBufferLength() + " bits offset.");
+                    throw new IllegalStateException("Misalignment error: " + bitsRemaining + " bits offset.");
                 } else {
                     bitWriter.clear();
                 }
             }
             writeCount += written;
+
+            if (written <= 0) {
+                return bitsRemaining <= 0 ? -1 : 0;
+            }
             return written;
         }
     }
@@ -552,11 +558,11 @@ public abstract class BitspeakDecoder {
                 nextState = STATE_BEGIN_CONSONANT;
             }
             int written = bitWriter.flush(destination, destinationOffset, destinationLength);
-
-            if (bitWriter.getBufferLength() > 0) {
-                throw new IllegalStateException("Misalignment error: " + bitWriter.getBufferLength() + " bits offset.");
-            }
             writeCount += written;
+
+            if (written <= 0) {
+                return bitWriter.getBufferLength() <= 0 ? -1 : 0;
+            }
             return written;
         }
     }
@@ -587,6 +593,9 @@ public abstract class BitspeakDecoder {
         }
 
         int flush(byte[] destination, int destinationOffset, int destinationLength) {
+            if (destinationLength <= 0) {
+                return 0;
+            }
             int written = 0;
 
             // Do we have 8 bits?

@@ -25,7 +25,7 @@ import java.util.Objects;
  * over the life-time of the decoder) from the byte arrays.
  * <p>
  *  Finally, call {@link BitspeakEncoder#finishBlock(char[], int, int)} to indicate that the stream of bytes
- *  have ended (EOF). Repeat until the <i>finishBlock</i> method returns zero (0).
+ *  have ended (EOF). Repeat until the <i>finishBlock</i> method returns negative one (-1).
  * </p>
  * <p>
  * WARNING: This class is not thread safe.
@@ -69,9 +69,8 @@ public abstract class BitspeakEncoder {
                     bufferPosition += getReadCount() - currentRead;
                     return written;
                 } else {
-                    // Finalize block
-                    int written = finishBlock(cbuf, off, len);
-                    return written > 0 ? written : -1;
+                    // Finalize block (will return -1 at the end)
+                    return finishBlock(cbuf, off, len);
                 }
             }
 
@@ -115,7 +114,7 @@ public abstract class BitspeakEncoder {
      * @param destination       the destination character array.
      * @param destinationOffset the starting position of the destination array.
      * @param destinationLength the maximum number of characters to write to the destination array.
-     * @return Number of encoded characters.
+     * @return Number of encoded characters, no less than zero.
      */
     public abstract int encodeBlock(byte[] source, int sourceOffset, int sourceLength, char[] destination, int destinationOffset, int destinationLength);
 
@@ -124,7 +123,7 @@ public abstract class BitspeakEncoder {
      * @param destination       the destination character array.
      * @param destinationOffset the starting position of the destination array.
      * @param destinationLength the maximum number of characters to write to the destination array.
-     * @return Number of encoded characters, or 0 if the encoder is finished.
+     * @return Number of encoded characters, zero if we reached the end of the buffer, or -1 if the encoder is finished.
      */
     public abstract int finishBlock(char[] destination, int destinationOffset, int destinationLength);
 
@@ -264,7 +263,7 @@ public abstract class BitspeakEncoder {
             currentState = state;
 
             writeCount += written;
-            return written;
+            return written == 0 && bufferLength == 0 ? -1 : written;
         }
     }
 
@@ -376,7 +375,7 @@ public abstract class BitspeakEncoder {
 
             readCount += read;
             writeCount += written;
-            return written;
+            return written == 0 && currentState == STATE_READ_BYTE ? -1 : written;
         }
     }
 

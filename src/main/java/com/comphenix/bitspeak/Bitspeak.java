@@ -390,7 +390,7 @@ public class Bitspeak {
             }
         }
         int writeCount = (int) decoder.getWriteCount();
-
+        
         // Create final array
         return writeCount < buffer.length ? Arrays.copyOf(buffer, writeCount) : buffer;
     }
