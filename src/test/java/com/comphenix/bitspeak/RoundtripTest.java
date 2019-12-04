@@ -46,13 +46,30 @@ public class RoundtripTest {
 
     @Test
     public void testStreaming() throws IOException {
-        Random rnd = new Random(1);
-
-        byte[] data = new byte[64 * 1024];
-        rnd.nextBytes(data);
+        byte[] data = generateData(1, 64 * 1024);
 
         testFormat(Bitspeak.bs6(), data);
         testFormat(Bitspeak.bs8(), data);
+    }
+
+    @Test
+    public void testBufferSizes() throws IOException {
+        byte[] data = generateData(2, 8 * 1024);
+
+        for (int i = 1; i < 4; i++) {
+            for (int j = 1; j < 4; j++) {
+                testReaderStream(Bitspeak.bs6(), data, i, j);
+                testReaderStream(Bitspeak.bs8(), data, i, j);
+            }
+        }
+    }
+
+    private byte[] generateData(int seed, int length) {
+        Random rnd = new Random(seed);
+
+        byte[] data = new byte[length];
+        rnd.nextBytes(data);
+        return data;
     }
 
     private void testFormat(Bitspeak bitspeak, byte[] data) throws IOException {
@@ -62,11 +79,15 @@ public class RoundtripTest {
     }
 
     private void testReaderStream(Bitspeak bitspeak, byte[] data) throws IOException {
+        testReaderStream(bitspeak, data, 4096, 4096);
+    }
+
+    private void testReaderStream(Bitspeak bitspeak, byte[] data, int readerBufferSize, int writerBufferSize) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         // Pass through streams
-        try (Reader reader = bitspeak.newEncodeStream(new ByteArrayInputStream(data));
-             InputStream decoded = bitspeak.newDecodeStream(reader)) {
+        try (Reader reader = bitspeak.newEncodeStream(new ByteArrayInputStream(data), readerBufferSize);
+             InputStream decoded = bitspeak.newDecodeStream(reader, writerBufferSize)) {
             ByteStreams.copy(decoded, outputStream);
         }
         // Verify output is the same

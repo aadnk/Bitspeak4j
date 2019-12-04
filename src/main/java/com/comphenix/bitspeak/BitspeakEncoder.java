@@ -98,7 +98,7 @@ public abstract class BitspeakEncoder {
     }
 
     /**
-     * Retrieve the number of chracters this decoder has written.
+     * Retrieve the number of characters this decoder has written.
      * @return Total number of written characters.
      */
     public long getWriteCount() {
