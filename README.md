@@ -45,7 +45,7 @@ Dependency:
 <dependency>
     <groupId>com.comphenix</groupId>
     <artifactId>Bitspeak</artifactId>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.3-SNAPSHOT</version>
     <scope>compile</scope>
 </dependency>
 ```
