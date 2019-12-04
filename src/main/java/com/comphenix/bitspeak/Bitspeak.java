@@ -9,8 +9,7 @@
 
 package com.comphenix.bitspeak;
 
-import java.io.InputStream;
-import java.io.Reader;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -390,9 +389,32 @@ public class Bitspeak {
             }
         }
         int writeCount = (int) decoder.getWriteCount();
-        
+
         // Create final array
         return writeCount < buffer.length ? Arrays.copyOf(buffer, writeCount) : buffer;
+    }
+
+    /**
+     * Decode the characters in the given input stream, and write the resulting bytes to the given output stream.
+     * @param inputStream the input stream.
+     * @param outputStream the output stream.
+     * @return The number of decoded bytes.
+     */
+    public long decodeStream(Reader inputStream, OutputStream outputStream) throws IOException {
+        InputStream reader = newDecodeStream(inputStream);
+        byte[] buffer = new byte[4096];
+        long total = 0;
+
+        while (true) {
+            int readCount = reader.read(buffer);
+
+            if (readCount == -1) {
+                break;
+            }
+            outputStream.write(buffer, 0, readCount);
+            total += readCount;
+        }
+        return total;
     }
 
     /**
@@ -491,12 +513,32 @@ public class Bitspeak {
         while (true) {
             int written = encoder.finishBlock(buffer, 0, buffer.length);
 
-            if (written <= 0) {
+            if (written < 0) {
                 break;
+            } else if (written > 0) {
+                builder.append(buffer, 0, written);
             }
-            builder.append(buffer, 0, written);
         }
         return builder.toString();
+    }
+
+    /**
+     * Encode the bytes in the given input stream, and write the result to the given output stream.
+     * @param inputStream the input stream.
+     * @param outputStream the output stream.
+     * @return The number of encoded characters.
+     */
+    public long encodeStream(InputStream inputStream, Writer outputStream) throws IOException {
+        Reader reader = newEncodeStream(inputStream);
+        char[] buffer = new char[4096];
+
+        int readCount;
+        long total = 0;
+        while ((readCount = reader.read(buffer)) != -1) {
+            outputStream.write(buffer, 0, readCount);
+            total += readCount;
+        }
+        return total;
     }
 
     /**

@@ -12,6 +12,7 @@ package com.comphenix.bitspeak;
 import com.google.common.base.Splitter;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
+import com.google.common.io.CharStreams;
 import org.junit.Test;
 
 import java.io.*;
@@ -22,6 +23,7 @@ import static com.comphenix.bitspeak.TestPatterns.generatePattern;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class RoundtripTest {
     @Test
@@ -57,6 +59,7 @@ public class RoundtripTest {
     private void testFormat(Bitspeak bitspeak, byte[] data) throws IOException {
         testByteArray(bitspeak, data);
         testReaderStream(bitspeak, data);
+        testEncodeDecodeStreams(bitspeak, data);
     }
 
     private void testReaderStream(Bitspeak bitspeak, byte[] data) throws IOException {
@@ -69,6 +72,30 @@ public class RoundtripTest {
         }
         // Verify output is the same
         assertArrayEquals(data, outputStream.toByteArray());
+    }
+
+    private void testEncodeDecodeStreams(Bitspeak bitspeak, byte[] data) throws IOException {
+        StringWriter writer = new StringWriter();
+        long encodeCount;
+
+        try (InputStream inputStream = new ByteArrayInputStream(data)) {
+            encodeCount = bitspeak.encodeStream(inputStream, writer);
+        }
+        String encoded = writer.toString();
+
+        assertEquals(encoded.length(), encodeCount);
+        ByteArrayOutputStream decoded = new ByteArrayOutputStream();
+
+        // Decode from string
+        long decodeCount;
+
+        try (StringReader reader = new StringReader(encoded)) {
+            decodeCount = bitspeak.decodeStream(reader, decoded);
+        }
+        byte[] roundTrip = decoded.toByteArray();
+
+        assertEquals(roundTrip.length, decodeCount);
+        assertArrayEquals(data, roundTrip);
     }
 
     private void testByteArray(Bitspeak bitspeak, byte[] data) {
@@ -86,7 +113,7 @@ public class RoundtripTest {
         assertThat(input.length, lessThanOrEqualTo(bitspeak.estimateDecodeSize(encoded.length())));
     }
 
-    @Test
+    //@Test
     public void printPatterns() {
         String[] hexes = { "01", "0102", "010203", "01020304", "DEADBEEF010203" };
 
