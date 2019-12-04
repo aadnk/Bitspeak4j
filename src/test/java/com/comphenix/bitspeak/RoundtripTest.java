@@ -12,7 +12,6 @@ package com.comphenix.bitspeak;
 import com.google.common.base.Splitter;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
-import com.google.common.io.CharStreams;
 import org.junit.Test;
 
 import java.io.*;

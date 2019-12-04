@@ -23,9 +23,9 @@ or the other way around:
 Path input = Paths.get("input.data");
 Path output = Paths.get("output.txt");
 
-try (Reader reader = Bitspeak.bs6().newEncodeStream(Files.newInputStream(input));
+try (InputStream reader = Files.newInputStream(input);
      BufferedWriter writer = Files.newBufferedWriter(output)) {
-    CharStreams.copy(reader, writer); // Guava
+    Bitspeak.bs6().encodeStream(reader, writer);
 }
 ```
 
