@@ -88,9 +88,6 @@ public class Bitspeak {
     private static final Bitspeak BITSPEAK_BS_8 = new Bitspeak(Format.BS_8, BitspeakConfig.defaultConfig());
     private static final Collection<Bitspeak> FORMATS = Collections.unmodifiableList(Arrays.asList(BITSPEAK_BS_6, BITSPEAK_BS_8));
 
-    private static final int MAX_ENCODE_SIZE = Integer.MAX_VALUE - 64;
-    private static final int MAX_DECODE_SIZE = Integer.MAX_VALUE - 1;
-
     private final Bitspeak.Format format;
     private final BitspeakConfig config;
 
@@ -320,7 +317,7 @@ public class Bitspeak {
     }
 
     /**
-     * Retrieve a bitspeak format with the given configuration.
+     * Retrieve a copy of this bitspeak format with a new configuration.
      * @param configuration the configuration, cannot be NULL.
      * @return The bitspeak format instance with this configuration.
      */
@@ -354,10 +351,10 @@ public class Bitspeak {
      * @return The original byte array.
      */
     public byte[] decode(char[] bitspeak, int offset, int length) {
-        // Calculate buffer size
-        byte[] buffer = new byte[estimateDecodeSize(length)];
-
         BitspeakDecoder decoder = newDecoder();
+
+        // Calculate buffer size
+        byte[] buffer = new byte[decoder.estimateDecodeSize(length)];
         boolean reading = true;
 
         while (true) {
@@ -423,21 +420,7 @@ public class Bitspeak {
      * @return The number of bytes, cannot be negative.
      */
     public int estimateDecodeSize(int characterCount) {
-        if (characterCount < 0) {
-            throw new IllegalArgumentException("characterCount cannot be negative");
-        }
-        switch (format) {
-            case BS_6:
-                // Compute number of bits needed to store the number
-                long bits = (characterCount / 2) * (long)6 + ((characterCount & 1) == 1 ? 4 : 0);
-                return (int) Math.min(Math.ceil(bits / 8.0), MAX_DECODE_SIZE);
-
-            case BS_8:
-                // At least half (for instance, papapa)
-                return (int) Math.min(Math.ceil(characterCount / 2.0), MAX_DECODE_SIZE);
-            default:
-                throw new IllegalArgumentException("Unknown format: " + this);
-        }
+        return newDecoder().estimateDecodeSize(characterCount);
     }
 
     /**
@@ -495,10 +478,10 @@ public class Bitspeak {
      * @return The encoded characters.
      */
     public String encode(byte[] data, int offset, int length) {
-        // Buffer was not large enough
-        StringBuilder builder = new StringBuilder(estimateEncodeSize(length));
-
         BitspeakEncoder encoder = newEncoder();
+
+        // Buffer was not large enough
+        StringBuilder builder = new StringBuilder(encoder.estimateEncodeSize(length));
         char[] buffer = new char[4096];
 
         while (encoder.getReadCount() < length) {
@@ -547,34 +530,7 @@ public class Bitspeak {
      * @return The maximum number of characters needed, up to {@link Integer#MAX_VALUE} - 64.
      */
     public int estimateEncodeSize(int byteCount) {
-        if (byteCount < 0) {
-            throw new IllegalArgumentException("byteCount cannot be negative");
-        }
-        switch (format) {
-            case BS_6:
-                long bits = (long)byteCount * 8;
-                long characters = 2 * (bits / 6) + (bits % 6 == 0 ? 0 : 1);
-
-                return adjustDelimiterCount(characters);
-
-            case BS_8:
-                // could be as much as 4 characters per byte (0110 0101 -> shan)
-                return adjustDelimiterCount(4L * byteCount);
-            default:
-                throw new IllegalArgumentException("Unknown format: " + this);
-        }
-    }
-
-    private int adjustDelimiterCount(long characters) {
-        if (config.getMaxWordSize() > 0 || config.getMaxLineSize() > 0) {
-            long words = config.getMaxWordSize() > 0 ? (long) Math.ceil(characters / (double) config.getMaxWordSize()) : 0;
-
-            characters += config.getWordDelimiter().length() * words;
-            long lines = config.getMaxLineSize() > 0 ? (long) Math.ceil(characters / (double) config.getMaxLineSize()) : 0;
-
-            characters += config.getLineDelimiter().length() * lines;
-        }
-        return (int) Math.min(characters, MAX_ENCODE_SIZE);
+        return newEncoder().estimateEncodeSize(byteCount);
     }
 
     /**

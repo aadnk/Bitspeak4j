@@ -32,6 +32,8 @@ import java.util.Objects;
  * </p>
  */
 public abstract class BitspeakEncoder {
+    private static final int MAX_ENCODE_SIZE = Integer.MAX_VALUE - 64;
+
     /**
      * The total number of bytes read by this encoder.
      */
@@ -133,6 +135,13 @@ public abstract class BitspeakEncoder {
      * @return Number of encoded characters, zero if we reached the end of the buffer, or -1 if the encoder is finished.
      */
     public abstract int finishBlock(char[] destination, int destinationOffset, int destinationLength);
+
+    /**
+     * Estimate the number of characters needed to store the given bytes with the encoder.
+     * @param byteCount the number of bytes.
+     * @return The maximum number of characters needed, up to {@link Integer#MAX_VALUE} - 64.
+     */
+    public abstract int estimateEncodeSize(int byteCount);
 
     private static class SixBitEncoder extends BitspeakEncoder {
         private static final char[] CONSONANTS = { 'p', 'b', 't', 'd', 'k', 'g', 'x', 'j', 'f', 'v', 'l', 'r', 'm', 'n', 's', 'z' };
@@ -272,6 +281,18 @@ public abstract class BitspeakEncoder {
             writeCount += written;
             return written == 0 && bufferLength == 0 ? -1 : written;
         }
+
+        @Override
+        public int estimateEncodeSize(int byteCount) {
+            if (byteCount < 0) {
+                throw new IllegalArgumentException("byteCount cannot be negative");
+            }
+            long bits = (long)byteCount * 8;
+            long characters = 2 * (bits / 6) + (bits % 6 == 0 ? 0 : 1);
+
+            return (int) Math.min(characters + whitespaceManager.
+                    estimateDelimiterCharacters(characters), MAX_ENCODE_SIZE);
+        }
     }
 
     private static class EightBitEncoder extends BitspeakEncoder {
@@ -304,6 +325,18 @@ public abstract class BitspeakEncoder {
         @Override
         public int finishBlock(char[] destination, int destinationOffset, int destinationLength) {
             return performEncode(null, 0, 0, destination, destinationOffset, destinationLength);
+        }
+
+        @Override
+        public int estimateEncodeSize(int byteCount) {
+            if (byteCount < 0) {
+                throw new IllegalArgumentException("byteCount cannot be negative");
+            }
+            // could be as much as 4 characters per byte (0110 0101 -> shan)
+            long characters = 4L * byteCount;
+
+            return (int) Math.min(characters + whitespaceManager.
+                    estimateDelimiterCharacters(characters), MAX_ENCODE_SIZE);
         }
 
         private int performEncode(byte[] source, int sourceOffset, int sourceLength, char[] destination, int destinationOffset, int destinationLength) {
@@ -481,6 +514,25 @@ public abstract class BitspeakEncoder {
                 }
             }
             return written;
+        }
+
+        /**
+         * Estimate the number of delimiter characters inserted into a bitspeak encoded stream of the given length.
+         * @param characters the number of encoded characters in the bitspeak stream.
+         * @return The number of delimiter characters.
+         */
+        public long estimateDelimiterCharacters(long characters) {
+            long delimiterCharacters = 0;
+
+            if (config.getMaxWordSize() > 0 || config.getMaxLineSize() > 0) {
+                long words = config.getMaxWordSize() > 0 ? (long) Math.ceil(characters / (double) config.getMaxWordSize()) : 0;
+
+                delimiterCharacters += config.getWordDelimiter().length() * words;
+                long lines = config.getMaxLineSize() > 0 ? (long) Math.ceil(characters / (double) config.getMaxLineSize()) : 0;
+
+                delimiterCharacters += config.getLineDelimiter().length() * lines;
+            }
+            return delimiterCharacters;
         }
     }
 }

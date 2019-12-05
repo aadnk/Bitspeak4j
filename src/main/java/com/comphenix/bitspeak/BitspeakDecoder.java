@@ -35,6 +35,8 @@ import java.util.Objects;
  * </p>
  */
 public abstract class BitspeakDecoder {
+    private static final int MAX_DECODE_SIZE = Integer.MAX_VALUE - 1;
+
     /**
      * The total number of characters read by this decoder.
      */
@@ -153,6 +155,15 @@ public abstract class BitspeakDecoder {
      * @return Number of decoded bytes, zero if we reached the end of the buffer, or -1 if the decoder is finished.
      */
     public abstract int finishBlock(byte[] destination, int destinationOffset, int destinationLength);
+
+    /**
+     * Estimate the number of bytes needed to store the given character array with this decoder.
+     * <p>
+     * The estimate will usually be the upper bound for a byte array decoded from the given number of characters.
+     * @param characterCount the character count.
+     * @return The number of bytes, cannot be negative.
+     */
+    public abstract int estimateDecodeSize(int characterCount);
 
     private static class SixBitDecoder extends BitspeakDecoder {
         private final BitWriter bitWriter = new BitWriter();
@@ -290,6 +301,16 @@ public abstract class BitspeakDecoder {
                 return bitsRemaining <= 0 ? -1 : 0;
             }
             return written;
+        }
+
+        @Override
+        public int estimateDecodeSize(int characterCount) {
+            if (characterCount < 0) {
+                throw new IllegalArgumentException("characterCount cannot be negative");
+            }
+            // Compute number of bits needed to store the number
+            long bits = (characterCount / 2) * (long)6 + ((characterCount & 1) == 1 ? 4 : 0);
+            return (int) Math.min(Math.ceil(bits / 8.0), MAX_DECODE_SIZE);
         }
     }
 
@@ -533,6 +554,15 @@ public abstract class BitspeakDecoder {
                 return bitWriter.getBufferLength() <= 0 ? -1 : 0;
             }
             return written;
+        }
+
+        @Override
+        public int estimateDecodeSize(int characterCount) {
+            if (characterCount < 0) {
+                throw new IllegalArgumentException("characterCount cannot be negative");
+            }
+            // At least half (for instance, papapa)
+            return (int) Math.min(Math.ceil(characterCount / 2.0), MAX_DECODE_SIZE);
         }
     }
 
