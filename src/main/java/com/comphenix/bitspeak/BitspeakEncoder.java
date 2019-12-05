@@ -16,7 +16,7 @@ import java.io.Reader;
 import java.util.Objects;
 
 /**
- * A bitspeak encoder. <i>Use {@link Bitspeak} for common encode operations.</i>
+ * A low-level bitspeak encoder. <i>Use {@link Bitspeak} for common encode operations.</i>
  * <p>
  * An encoder may be acquired using {@link Bitspeak#newEncoder()}. To encode a stream of bytes, call
  * {@link BitspeakEncoder#encodeBlock(byte[], int, int, char[], int, int)} repeatedly with a range
@@ -24,15 +24,22 @@ import java.util.Objects;
  * characters to the output character array, use {@link #getReadCount()} to determine the number of read bytes (total accumulated
  * over the life-time of the decoder) from the byte arrays.
  * <p>
- *  Finally, call {@link BitspeakEncoder#finishBlock(char[], int, int)} to indicate that the stream of bytes
- *  have ended (EOF). Repeat until the <i>finishBlock</i> method returns negative one (-1).
+ * Finally, call {@link BitspeakEncoder#finishBlock(char[], int, int)} to indicate that the stream of bytes
+ * have ended (EOF). Repeat until the <i>finishBlock</i> method returns negative one (-1).
  * </p>
  * <p>
  * WARNING: This class is not thread safe.
  * </p>
  */
 public abstract class BitspeakEncoder {
+    /**
+     * The total number of bytes read by this encoder.
+     */
     protected long readCount;
+
+    /**
+     * The total number of characters written by this encoder.
+     */
     protected long writeCount;
 
     static BitspeakEncoder newEncoder(Bitspeak.Format format, BitspeakConfig config) {

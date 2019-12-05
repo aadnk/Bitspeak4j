@@ -18,7 +18,7 @@ import java.io.Reader;
 import java.util.Objects;
 
 /**
- * A bitspeak decoder. <i>Use {@link Bitspeak} for common decode operations.</i>
+ * A low-level bitspeak decoder. <i>Use {@link Bitspeak} for common decode operations.</i>
  * <p>
  * A decoder may be acquired using {@link Bitspeak#newDecoder()}. To decode a stream of characters, call
  * {@link BitspeakDecoder#decodeBlock(char[], int, int, byte[], int, int)} repeatedly with a range
@@ -35,7 +35,14 @@ import java.util.Objects;
  * </p>
  */
 public abstract class BitspeakDecoder {
+    /**
+     * The total number of characters read by this decoder.
+     */
     protected long readCount;
+
+    /**
+     * The total number of bytes written by this decoder.
+     */
     protected long writeCount;
 
     static BitspeakDecoder newDecoder(Bitspeak.Format format, BitspeakConfig config) {
