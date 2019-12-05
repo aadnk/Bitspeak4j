@@ -17,8 +17,7 @@ The resulting string can be decoded using the _decode_ method:
 Bitspeak.bs6().decode("pakatape")); 
 ```
 
-It is also possible to write the bytes in an _InputStream_ to a _Writer_ with encoded Bitspeak, 
-or the other way around:
+It is also possible to write the bytes in an _InputStream_ to a _Writer_ with encoded Bitspeak:
 ```java
 Path input = Paths.get("input.data");
 Path output = Paths.get("output.txt");
@@ -26,6 +25,17 @@ Path output = Paths.get("output.txt");
 try (InputStream reader = Files.newInputStream(input);
      BufferedWriter writer = Files.newBufferedWriter(output)) {
     Bitspeak.bs6().encodeStream(reader, writer);
+}
+```
+
+The reverse is also possible:
+```java
+Path input = Paths.get("output.txt");
+Path output = Paths.get("roundtrip.data");
+
+try (BufferedReader reader = Files.newBufferedReader(input);
+     OutputStream writer = Files.newOutputStream(output)) {
+    Bitspeak.bs6().decodeStream(reader, writer);
 }
 ```
 
