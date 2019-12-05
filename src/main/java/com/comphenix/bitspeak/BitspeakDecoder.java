@@ -132,44 +132,6 @@ public abstract class BitspeakDecoder {
     }
 
     /**
-     * Decode the bitspeak in the given source array to the given destination byte array, as a final block.
-     *
-     * @param source      the source character array with the bitspeak content.
-     * @param destination the destination byte array.
-     * @return Number of decoded bytes.
-     */
-    public int decodeFinal(char[] source, byte[] destination) {
-        long startCount = readCount;
-        int written = 0;
-
-        // Consume until enough characters have been written to the output
-        while (true) {
-            int sourceOffset = (int) (readCount - startCount);
-            int decoded = decodeBlock(
-                    source, sourceOffset, source.length - sourceOffset,
-                    destination, written, destination.length - written);
-
-            // No more written characters
-            if (decoded <= 0) {
-                break;
-            }
-            written += decoded;
-        }
-        // Finalize block
-        while (true) {
-            int decoded = finishBlock(destination, written, destination.length - written);
-
-            if (decoded == 0) {
-                throw new IllegalArgumentException("Insufficient buffer length: " + destination.length);
-            } else if (decoded < 0) {
-                break;
-            }
-            written += decoded;
-        }
-        return written;
-    }
-
-    /**
      * Decode the bitspeak in the given source array to the given destination byte array.
      *
      * @param source            the source character array with the bitspeak content.

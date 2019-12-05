@@ -51,18 +51,6 @@ public class BitspeakDecoderTest {
 
         assertArrayEquals(expected, Bitspeak.bs6().decode(inputBS6));
         assertArrayEquals(expected, Bitspeak.bs8().decode(inputBS8));
-
-        testDecodeFinal(Bitspeak.bs6(), inputBS6, expected);
-        testDecodeFinal(Bitspeak.bs8(), inputBS8, expected);
-    }
-
-    private void testDecodeFinal(Bitspeak bitspeak, String input, byte[] expected) {
-        byte[] output = new byte[bitspeak.estimateDecodeSize(input.length())];
-
-        int decoded = bitspeak.newDecoder().decodeFinal(input.toCharArray(), output);
-        byte[] outputRange = Arrays.copyOf(output, decoded);
-
-        assertArrayEquals(expected, outputRange);
     }
 
     @Test
