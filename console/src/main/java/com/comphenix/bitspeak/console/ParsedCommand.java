@@ -2,7 +2,9 @@ package com.comphenix.bitspeak.console;
 
 import com.comphenix.bitspeak.Bitspeak;
 import com.comphenix.bitspeak.BitspeakConfig;
+import com.comphenix.bitspeak.console.util.CharPredicates;
 import com.comphenix.bitspeak.console.util.Escaping;
+import com.comphenix.bitspeak.function.CharPredicate;
 
 import java.nio.file.Paths;
 import java.util.Objects;
@@ -95,6 +97,12 @@ class ParsedCommand {
                     case "--word-delimiter":
                         String wordDelimiter = Escaping.unescapeString(getString(args, ++i));
                         configBuilder.withWordDelimiter(wordDelimiter);
+                        break;
+
+                    case "-sp":
+                    case "--skip-predicate":
+                        CharPredicate skipPredicate = CharPredicates.parsePredicate(getString(args, ++i));
+                        configBuilder.withSkipCharPredicate(skipPredicate);
                         break;
 
                     default:
