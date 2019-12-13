@@ -2,6 +2,7 @@ package com.comphenix.bitspeak.console;
 
 import com.comphenix.bitspeak.Bitspeak;
 import com.comphenix.bitspeak.BitspeakConfig;
+import com.comphenix.bitspeak.console.util.Escaping;
 
 import java.nio.file.Paths;
 import java.util.Objects;
@@ -22,7 +23,7 @@ class ParsedCommand {
     private final OutputSink outputSink;
     private final BitspeakConfig config;
 
-    private ParsedCommand(Mode mode, Bitspeak bitspeak, InputSource inputSource, OutputSink outputSink, BitspeakConfig config) {
+    protected ParsedCommand(Mode mode, Bitspeak bitspeak, InputSource inputSource, OutputSink outputSink, BitspeakConfig config) {
         this.mode = mode;
         this.bitspeak = bitspeak;
         this.inputSource = inputSource;
@@ -30,7 +31,7 @@ class ParsedCommand {
         this.config = config;
     }
 
-    public static ParsedCommand fromArguments(String[] args) {
+    public static ParsedCommand fromArguments(String... args) {
         Mode mode = null;
         Bitspeak bitspeak = null;
         InputSource inputSource = null;
@@ -86,12 +87,14 @@ class ParsedCommand {
 
                     case "-ld":
                     case "--line-delimiter":
-                        configBuilder.withLineDelimiter(getString(args, ++i));
+                        String lineDelimiter = Escaping.unescapeString(getString(args, ++i));
+                        configBuilder.withLineDelimiter(lineDelimiter);
                         break;
 
                     case "-wd":
                     case "--word-delimiter":
-                        configBuilder.withWordDelimiter(getString(args, ++i));
+                        String wordDelimiter = Escaping.unescapeString(getString(args, ++i));
+                        configBuilder.withWordDelimiter(wordDelimiter);
                         break;
 
                     default:
