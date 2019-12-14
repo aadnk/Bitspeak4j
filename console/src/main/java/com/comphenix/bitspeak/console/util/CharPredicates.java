@@ -4,6 +4,9 @@ import com.comphenix.bitspeak.function.CharPredicate;
 
 import java.util.*;
 
+/**
+ * Factory methods for constructing char predicates from strings.
+ */
 public class CharPredicates {
     private CharPredicates() {
         // Sealed
@@ -12,7 +15,7 @@ public class CharPredicates {
     /**
      * Represents a character change.
      */
-    public static class CharRange implements Comparable<CharRange> {
+    static class CharRange implements Comparable<CharRange> {
         private final char first;
         private final char last;
 

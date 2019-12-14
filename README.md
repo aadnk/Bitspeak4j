@@ -61,4 +61,4 @@ Dependency:
 ```
 
 # License
-This project is under the the GPL v2 License, consult the LICENSE file for more information.
+This project is under the the LGPL v3 License, consult the LICENSE file for more information.

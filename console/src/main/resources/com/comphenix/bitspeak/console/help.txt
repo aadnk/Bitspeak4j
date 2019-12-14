@@ -1,0 +1,50 @@
+bitspeak [encode|decode] [INPUT_FILE] [-?] [-b CODEC] [-i INPUT_TEXT]
+         [-o OUTPUT_PATH] [-ml SIZE] [-mw SIZE] [-ld DELIMITER] [-wd DELIMITER]
+         [-sp PREDICATE]
+
+Encode or decode the STDIN (or another source) using bitspeak, writing the
+output to STDOUT or another destination.
+
+ encode
+            Encode the input bytes (STDIN) into bitspeak characters.
+ decode
+            Decode the input characters (STDIN) as bitspeak into bytes.
+ INPUT_FILE
+            Use the content of the given file as input, instead of reading
+            from STDIN. For decoding, the charset is assumed to be UTF-8.
+ -?, --help
+            Print this help text.
+ -b, --bitspeak CODEC
+            Specify the CODEC used during encoding or decoding, can be either
+            BS-6 or BS-8 (hyphen can be omitted). The default is BS-6.
+ -i, --input-text TEXT
+            Use the given TEXT as input. For decoding, the charset is assumed
+            to be UTF-8.
+ -o, --output-file OUTPUT_PATH
+            Write the output of the encoding/decoding operation to the given
+            file, instead of STDOUT.
+ -ml, --max-line-size SIZE
+            Set the the maximum number of characters, including delimiters, the
+            encoder will output in each encoded line. This is 160 by default.
+            Set to -1 for infinite.
+ -mw, --max-word-size SIZE
+            Set the maximum number of characters the encoder will output in a
+            word. This is 8 by default. Set to -1 for infinite.
+ -ld, --line-delimiter DELIMITER
+            Set the delimiter to write between each outputted line.
+ -wd, --world-delimiter DELIMITER
+            Set the delimiter to write between each outputted word.
+ -sp, --skip-predicate PREDICATE
+            Specify a predicate used to match characters that will be skipped
+            as whitespace during decoding.
+
+            This is written in a form similar to a regular expression character
+            class (without square brackets):
+               abcA-C0-9
+
+            Characters can be escaped using "\", using standard Java escape
+            syntax. The character "-" may be escaped as well, in order to match
+            it literally.
+
+COPYRIGHT (C) Kristian Stangeland, 2019.
+Licensed under LGPL v3.

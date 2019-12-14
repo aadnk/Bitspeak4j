@@ -1,6 +1,7 @@
 package com.comphenix.bitspeak.console;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 public class Application {
     public static void main(String[] args) throws IOException {
@@ -9,7 +10,8 @@ public class Application {
 
         switch (parser.getMode()) {
             case SHOW_HELP:
-                System.out.println("Help"); // TODO: Handle help
+                String helpText = getResourceAsString("help.txt");
+                System.out.println(helpText);
                 break;
             case DECODE:
                 try (Reader reader = parser.getInputSource().toReader();
@@ -34,6 +36,29 @@ public class Application {
                     }
                 }
                 break;
+        }
+    }
+
+    private static String getResourceAsString(String name) {
+        InputStream inputStream = Application.class.getResourceAsStream(name);
+
+        if (inputStream == null) {
+            throw new IllegalArgumentException("Unable to find " + name);
+        }
+        try (InputStream stream = inputStream;
+             InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8);
+             BufferedReader bufferedReader = new BufferedReader(reader)) {
+
+            StringBuilder builder = new StringBuilder();
+            String line;
+
+            while ((line = bufferedReader.readLine()) != null) {
+                builder.append(line);
+                builder.append(System.lineSeparator());
+            }
+            return builder.toString();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }

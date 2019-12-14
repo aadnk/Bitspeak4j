@@ -49,7 +49,7 @@ class ParsedCommand {
                 mode = Mode.ENCODE;
             } else if ("decode".equalsIgnoreCase(argument)) {
                 checkNull(mode, "Mode has already been set to %s");
-                mode = Mode.ENCODE;
+                mode = Mode.DECODE;
             } else if (argument.startsWith("-")) {
                 switch (argument.toLowerCase()) {
                     case "-?":
@@ -59,7 +59,7 @@ class ParsedCommand {
                         break;
 
                     case "-b":
-                    case "-bitspeak":
+                    case "--bitspeak":
                         checkNull(bitspeak, "Bitspeak has already been set to %s");
                         bitspeak = parseBitspeak(getString(args, ++i));
                         break;
