@@ -4,6 +4,7 @@ import com.comphenix.bitspeak.Bitspeak;
 import com.comphenix.bitspeak.BitspeakConfig;
 import com.comphenix.bitspeak.console.util.CharPredicates;
 import com.comphenix.bitspeak.console.util.Escaping;
+import com.comphenix.bitspeak.console.util.HexEncoding;
 import com.comphenix.bitspeak.function.CharPredicate;
 
 import java.nio.file.Paths;
@@ -69,6 +70,14 @@ class ParsedCommand {
                     case "--input-text":
                         checkNull(inputSource, "input has already been set to %s");
                         inputSource = InputSource.fromString(getString(args, ++i));
+                        break;
+
+                    case "-h":
+                    case "--input-hex":
+                        checkNull(inputSource, "input has already been set to %s");
+
+                        byte[] data = HexEncoding.decodeHex(getString(args, ++i));
+                        inputSource = InputSource.fromByteArray(data);
                         break;
 
                     case "-o":

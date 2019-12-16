@@ -20,6 +20,8 @@ output to STDOUT or another destination.
  -i, --input-text TEXT
             Use the given TEXT as input. For decoding, the charset is assumed
             to be UTF-8.
+ -h, --input-hex HEX
+            Use the given hexadecimal encoded bytes input (0 - 9 and A - F).
  -o, --output-file OUTPUT_PATH
             Write the output of the encoding/decoding operation to the given
             file, instead of STDOUT.

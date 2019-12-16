@@ -1,9 +1,12 @@
 package com.comphenix.bitspeak.console;
 
+import com.comphenix.bitspeak.console.util.HexEncoding;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Objects;
 
 abstract class InputSource {
@@ -13,6 +16,10 @@ abstract class InputSource {
 
     public static InputSource fromString(String text) {
         return new StringInputSource(text);
+    }
+
+    public static InputSource fromByteArray(byte[] data) {
+        return new ByteArrayInputSource(data);
     }
 
     public static InputSource fromPath(Path path) {
@@ -114,5 +121,44 @@ abstract class InputSource {
         public int hashCode() {
             return Objects.hash(text);
         }
+    }
+
+    static class ByteArrayInputSource extends InputSource {
+        private final byte[] data;
+
+        public ByteArrayInputSource(byte[] data) {
+            this.data = Objects.requireNonNull(data, "data cannot be NULL");
+        }
+
+        @Override
+        public Reader toReader() throws IOException {
+            return new InputStreamReader(toInputStream(), StandardCharsets.UTF_8);
+        }
+
+        @Override
+        public InputStream toInputStream() throws IOException {
+            return new ByteArrayInputStream(data);
+        }
+
+        @Override
+        public String toString() {
+            return "ByteArrayInputSource{" +
+                    "data=" + Arrays.toString(data) +
+                    '}';
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            ByteArrayInputSource that = (ByteArrayInputSource) o;
+            return Arrays.equals(data, that.data);
+        }
+
+        @Override
+        public int hashCode() {
+            return Arrays.hashCode(data);
+        }
+
     }
 }
