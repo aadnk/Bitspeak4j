@@ -50,6 +50,8 @@ public abstract class BitspeakEncoder {
                 return new SixBitEncoder(config);
             case BS_8:
                 return new EightBitEncoder(config);
+            case HEX:
+                return new HexEncoder(config);
             default:
                 throw new IllegalArgumentException("Unknown format: " + format);
         }
@@ -419,6 +421,95 @@ public abstract class BitspeakEncoder {
         }
     }
 
+    private static class HexEncoder extends BitspeakEncoder {
+        private static final char[] ALPHABET = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+
+        private final WhitespaceManager whitespaceManager;
+
+        private int currentBuffer;
+        private int currentBufferLength;
+        private boolean currentWriteWhitespace;
+
+        public HexEncoder(BitspeakConfig config) {
+            this.whitespaceManager = new WhitespaceManager(config);
+        }
+
+        @Override
+        public int encodeBlock(byte[] source, int sourceOffset, int sourceLength, char[] destination, int destinationOffset, int destinationLength) {
+            return performEncode(source, sourceOffset, sourceLength, destination, destinationOffset, destinationLength);
+        }
+
+        @Override
+        public int finishBlock(char[] destination, int destinationOffset, int destinationLength) {
+            return performEncode(null, 0, 0, destination, destinationOffset, destinationLength);
+        }
+
+        private int performEncode(byte[] source, int sourceOffset, int sourceLength, char[] destination, int destinationOffset, int destinationLength) {
+            int read = 0;
+            int written = 0;
+
+            int buffer = currentBuffer;
+            int bufferLength = currentBufferLength;
+            boolean writeWhitespace = currentWriteWhitespace;
+
+            for (; written < destinationLength; ) {
+                if (writeWhitespace) {
+                    int whitespace = whitespaceManager.writeDelimiter(destination,
+                            destinationOffset + written, destinationLength - written);
+
+                    // More whitespace characters to write
+                    if (whitespace > 0) {
+                        written += whitespace;
+                        continue;
+                    }
+                    // Done writing whitespace
+                    writeWhitespace = false;
+                }
+                // Add bits to buffer if needed
+                if (bufferLength < 4) {
+                    if (source == null || read >= sourceLength) {
+                        // We are done
+                        break;
+                    }
+                    buffer = buffer << 8 | source[sourceOffset + read++] & 0xFF;
+                    bufferLength += 8;
+                }
+                if (whitespaceManager.beginOutput(1) < 1) {
+                    // Write whitespace first
+                    writeWhitespace = true;
+                    continue;
+                }
+
+                // Write next character
+                int hex = (buffer >> (bufferLength - 4)) & 0xF;
+                destination[destinationOffset + written++] = ALPHABET[hex];
+
+                buffer &= ~(0xF << (bufferLength - 4));
+                bufferLength -= 4;
+            }
+            // Save state
+            currentBuffer = buffer;
+            currentBufferLength = bufferLength;
+            currentWriteWhitespace = writeWhitespace;
+
+            readCount += read;
+            writeCount += written;
+            return written == 0 && bufferLength == 0 ? -1 : written;
+        }
+
+        @Override
+        public int estimateEncodeSize(int byteCount) {
+            if (byteCount < 0) {
+                throw new IllegalArgumentException("byteCount cannot be negative");
+            }
+            // Should always be twice the number of bytes
+            long characters = 2L * byteCount;
+
+            return (int) Math.min(characters + whitespaceManager.
+                    estimateDelimiterCharacters(characters), MAX_ENCODE_SIZE);
+        }
+    }
+
     private static class WhitespaceManager {
         private enum Delimiter {
             NONE,
@@ -463,6 +554,11 @@ public abstract class BitspeakEncoder {
                 } else {
                     result = 0;
                     nextDelimiter = Delimiter.WORD;
+
+                    // Use a line delimiter if the word delimiter would exceed the line length
+                    if (currentLineLength + config.getLineDelimiter().length() > maxLineSize) {
+                        nextDelimiter = Delimiter.LINE;
+                    }
                 }
             }
             if (currentLineLength + result > maxLineSize && maxLineSize > 0) {

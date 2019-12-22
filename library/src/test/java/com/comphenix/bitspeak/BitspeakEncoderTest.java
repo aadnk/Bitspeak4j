@@ -216,7 +216,12 @@ public class BitspeakEncoderTest {
             }
         };
         String result = bitspeak.encode(BaseEncoding.base16().decode("17559E"));
-
         assertEquals("bunugiji", result);
+    }
+
+    @Test
+    public void testHexEncoding() {
+        String encoded = Bitspeak.hex().encode(new byte[] { 0x12, (byte) 0xAB, 0x05, 0x09 });
+        assertEquals("12AB0509", encoded);
     }
 }

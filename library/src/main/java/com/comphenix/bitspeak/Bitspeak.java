@@ -81,11 +81,13 @@ import java.util.Objects;
 public class Bitspeak {
     enum Format {
         BS_6,
-        BS_8
+        BS_8,
+        HEX
     }
 
     private static final Bitspeak BITSPEAK_BS_6 = new Bitspeak(Format.BS_6, BitspeakConfig.defaultConfig());
     private static final Bitspeak BITSPEAK_BS_8 = new Bitspeak(Format.BS_8, BitspeakConfig.defaultConfig());
+    private static final Bitspeak BITSPEAK_HEX = new Bitspeak(Format.HEX, BitspeakConfig.newBuilder().withMaxLineSize(153).build());
     private static final Collection<Bitspeak> FORMATS = Collections.unmodifiableList(Arrays.asList(BITSPEAK_BS_6, BITSPEAK_BS_8));
 
     private final Bitspeak.Format format;
@@ -314,6 +316,14 @@ public class Bitspeak {
      */
     public static Bitspeak bs8() {
         return BITSPEAK_BS_8;
+    }
+
+    /**
+     * Retrieve a bitspeak format that encodes and decodes using a simple hexadecimal alphabet.
+     * @return The hexadecimal bitspeak format.
+     */
+    public static Bitspeak hex() {
+        return BITSPEAK_HEX;
     }
 
     /**

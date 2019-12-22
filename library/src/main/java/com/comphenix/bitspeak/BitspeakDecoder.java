@@ -53,6 +53,8 @@ public abstract class BitspeakDecoder {
                 return new SixBitDecoder(config);
             case BS_8:
                 return new EightBitDecoder(config);
+            case HEX:
+                return new HexDecoder(config);
             default:
                 throw new IllegalArgumentException("Unknown format: " + format);
         }
@@ -563,6 +565,80 @@ public abstract class BitspeakDecoder {
             }
             // At least half (for instance, papapa)
             return (int) Math.min(Math.ceil(characterCount / 2.0), MAX_DECODE_SIZE);
+        }
+    }
+
+    private static class HexDecoder extends BitspeakDecoder {
+        private final BitWriter bitWriter = new BitWriter();
+        private final BitspeakConfig config;
+
+        public HexDecoder(BitspeakConfig config) {
+            this.config = Objects.requireNonNull(config, "config cannot be NULL");
+        }
+
+        @Override
+        public int decodeBlock(char[] source, int sourceOffset, int sourceLength, byte[] destination, int destinationOffset, int destinationLength) {
+            int read = 0;
+            int written = 0;
+
+            CharPredicate skipChar = config.getSkipCharPredicate();
+
+            for (read = 0; read < sourceLength && written < destinationLength; read++) {
+                char character = source[read + sourceOffset];
+
+                // Completely skip whitespace (do not save as prev char)
+                if (skipChar.test(character)) {
+                    continue;
+                }
+                int decoded = Character.digit(character, 16);
+                bitWriter.writeBits(decoded, 4);
+
+                // Write if possible
+                int flushed = bitWriter.flush(destination,
+                        destinationOffset + written, destinationLength - written);
+
+                // Flip consonant state
+                written += flushed;
+
+                // Buffer is full
+                if (flushed == 0 && bitWriter.getBufferLength() >= 8) {
+                    break;
+                }
+            }
+            // Save current state
+            readCount += read;
+            writeCount += written;
+            return written;
+        }
+
+        @Override
+        public int finishBlock(byte[] destination, int destinationOffset, int destinationLength) {
+            int written = bitWriter.flush(destination, destinationOffset, destinationLength);
+            int bitsRemaining = bitWriter.getBufferLength();
+
+            if (bitsRemaining > 0 && bitsRemaining < 8) {
+                // Discard bits if they are zero (due to padding)
+                if (bitWriter.getBuffer() != 0) {
+                    throw new IllegalStateException("Misalignment error: " + bitsRemaining + " bits offset.");
+                } else {
+                    bitWriter.clear();
+                }
+            }
+            writeCount += written;
+
+            if (written <= 0) {
+                return bitsRemaining <= 0 ? -1 : 0;
+            }
+            return written;
+        }
+
+        @Override
+        public int estimateDecodeSize(int characterCount) {
+            if (characterCount < 0) {
+                throw new IllegalArgumentException("characterCount cannot be negative");
+            }
+            // Compute number of bits needed to store the number
+            return characterCount / 2;
         }
     }
 

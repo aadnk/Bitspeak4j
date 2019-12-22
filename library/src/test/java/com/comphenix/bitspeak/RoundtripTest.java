@@ -15,11 +15,14 @@ import com.google.common.io.ByteStreams;
 import org.junit.Test;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Random;
 import java.util.stream.Collectors;
 
 import static com.comphenix.bitspeak.TestPatterns.generatePattern;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -29,6 +32,7 @@ public class RoundtripTest {
     public void testAbPattern() {
         testAbPattern(Bitspeak.bs6());
         testAbPattern(Bitspeak.bs8());
+        testAbPattern(Bitspeak.hex());
     }
 
     private void testAbPattern(Bitspeak bitspeak) {
@@ -50,6 +54,7 @@ public class RoundtripTest {
 
         testFormat(Bitspeak.bs6(), data);
         testFormat(Bitspeak.bs8(), data);
+        testFormat(Bitspeak.hex(), data);
     }
 
     @Test
