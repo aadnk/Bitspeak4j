@@ -10,6 +10,8 @@
 package com.comphenix.bitspeak;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -320,7 +322,11 @@ public class Bitspeak {
 
     /**
      * Retrieve a bitspeak format that encodes and decodes using a simple hexadecimal alphabet.
-     * @return The hexadecimal bitspeak format.
+     * <p>
+     * Each 4 bits in the byte array is encoded to the characters 0 - 9, and A - F for 10 to 15. Whitespace
+     * and "-" will be added by default during encoding, and ignored by the decoder.
+     * </p>
+     * @return A hexadecimal bitspeak format.
      */
     public static Bitspeak hex() {
         return BITSPEAK_HEX;
@@ -399,6 +405,19 @@ public class Bitspeak {
 
         // Create final array
         return writeCount < buffer.length ? Arrays.copyOf(buffer, writeCount) : buffer;
+    }
+
+    /**
+     * Decode the characters in the given file, and write the resulting bytes to the given output file.
+     * @param source the input file.
+     * @param destination the output file.
+     * @return The number of decoded bytes.
+     */
+    public long decodeStream(Path source, Path destination) throws IOException {
+        try (BufferedReader reader = Files.newBufferedReader(source);
+             OutputStream outputStream = Files.newOutputStream(destination)) {
+            return decodeStream(reader, outputStream);
+        }
     }
 
     /**
@@ -516,6 +535,19 @@ public class Bitspeak {
     }
 
     /**
+     * Decode the characters in the given file, and write the resulting bytes to the given output file.
+     * @param source the input file.
+     * @param destination the output file.
+     * @return The number of decoded bytes.
+     */
+    public long encodeStream(Path source, Path destination) throws IOException {
+        try (InputStream inputStream = Files.newInputStream(source);
+             BufferedWriter outputStream = Files.newBufferedWriter(destination)) {
+            return encodeStream(inputStream, outputStream);
+        }
+    }
+
+    /**
      * Encode the bytes in the given input stream, and write the result to the given output stream.
      * @param inputStream the input stream.
      * @param outputStream the output stream.
@@ -589,6 +621,7 @@ public class Bitspeak {
         switch (format) {
             case BS_6: return "BS-6";
             case BS_8: return "BS-8";
+            case HEX: return "HEX";
             default:
                 throw new IllegalStateException("Unknown format: " + format);
         }

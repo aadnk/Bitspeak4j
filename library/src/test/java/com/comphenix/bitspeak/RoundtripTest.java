@@ -16,6 +16,7 @@ import org.junit.Test;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -81,6 +82,7 @@ public class RoundtripTest {
         testByteArray(bitspeak, data);
         testReaderStream(bitspeak, data);
         testEncodeDecodeStreams(bitspeak, data);
+        testFileRoundtrip(bitspeak, data);
     }
 
     private void testReaderStream(Bitspeak bitspeak, byte[] data) throws IOException {
@@ -121,6 +123,25 @@ public class RoundtripTest {
 
         assertEquals(roundTrip.length, decodeCount);
         assertArrayEquals(data, roundTrip);
+    }
+
+    private void testFileRoundtrip(Bitspeak bitspeak, byte[] data) throws IOException {
+        Path tempSource = Files.createTempFile(bitspeak.name(),".data");
+        Path tempDestination = Files.createTempFile(bitspeak.name() + "encoded", ".txt");
+        Path tempDecoded = Files.createTempFile(bitspeak.name() + "decoded", ".data");
+
+        try {
+            Files.write(tempSource, data);
+            bitspeak.encodeStream(tempSource, tempDestination);
+            bitspeak.decodeStream(tempDestination, tempDecoded);
+
+            byte[] decoded = Files.readAllBytes(tempDecoded);
+            assertArrayEquals(data, decoded);
+        } finally {
+            Files.deleteIfExists(tempSource);
+            Files.deleteIfExists(tempDestination);
+            Files.deleteIfExists(tempDecoded);
+        }
     }
 
     private void testByteArray(Bitspeak bitspeak, byte[] data) {
