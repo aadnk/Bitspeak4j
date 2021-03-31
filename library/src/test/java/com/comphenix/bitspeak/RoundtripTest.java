@@ -59,6 +59,15 @@ public class RoundtripTest {
     }
 
     @Test
+    public void testStreamingShortLine() throws IOException {
+        byte[] data = generateData(1, 4 * 512);
+        Bitspeak unixHex = new Bitspeak(Bitspeak.Format.HEX, BitspeakConfig.newBuilder().
+                withLineDelimiter("\n").withMaxLineSize(153).build());
+
+        testFormat(unixHex, data);
+    }
+
+    @Test
     public void testBufferSizes() throws IOException {
         byte[] data = generateData(2, 8 * 1024);
 

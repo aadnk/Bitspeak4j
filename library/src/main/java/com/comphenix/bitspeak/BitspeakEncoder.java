@@ -623,8 +623,11 @@ public abstract class BitspeakEncoder {
             if (config.getMaxWordSize() > 0 || config.getMaxLineSize() > 0) {
                 long words = config.getMaxWordSize() > 0 ? (long) Math.ceil(characters / (double) config.getMaxWordSize()) : 0;
 
+                long wordsPerLine = Math.max(0, config.getMaxLineSize() / (config.getMaxWordSize() + config.getWordDelimiter().length()));
+                long lineCharacters = Math.max(config.getMaxLineSize() - wordsPerLine * config.getWordDelimiter().length(), config.getMaxWordSize());
+
                 delimiterCharacters += config.getWordDelimiter().length() * words;
-                long lines = config.getMaxLineSize() > 0 ? (long) Math.ceil(characters / (double) config.getMaxLineSize()) : 0;
+                long lines = config.getMaxLineSize() > 0 ? (long) Math.ceil(characters / (double) lineCharacters) : 0;
 
                 delimiterCharacters += config.getLineDelimiter().length() * lines;
             }
